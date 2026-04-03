@@ -5,6 +5,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 DO $$ 
 DECLARE
+  admin_id UUID := gen_random_uuid();
   sakshi_id UUID := gen_random_uuid();
   om_id UUID := gen_random_uuid();
   vellor_id UUID := gen_random_uuid();
@@ -24,6 +25,7 @@ BEGIN
 -- All accounts share the password: password123
 INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 VALUES
+  (admin_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'admin@agency.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"System Admin"}', current_timestamp, current_timestamp),
   (sakshi_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'sakshi@team.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"Sakshi"}', current_timestamp, current_timestamp),
   (om_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'om@team.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"Om"}', current_timestamp, current_timestamp),
   (vellor_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'client@vellorliving.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"Vellor Living"}', current_timestamp, current_timestamp),
@@ -33,6 +35,9 @@ VALUES
 -- NOTE: The trigger 'handle_new_user' automatically generates profiles and 'employee' roles.
 -- We must manually correct the clients' roles!
 UPDATE public.user_roles SET role = 'client' WHERE user_id IN (vellor_id, oudfy_id, pamya_id);
+
+-- Explicitly ensure admin gets the admin role
+UPDATE public.user_roles SET role = 'admin' WHERE user_id = admin_id;
 
 -- Assign specific employee teams
 UPDATE public.profiles SET team = 'marketing' WHERE user_id = sakshi_id;
