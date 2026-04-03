@@ -25,12 +25,12 @@ BEGIN
 -- All accounts share the password: password123
 INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 VALUES
-  (admin_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'admin@agency.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"System Admin"}', current_timestamp, current_timestamp),
-  (sakshi_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'sakshi@team.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"Sakshi"}', current_timestamp, current_timestamp),
-  (om_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'om@team.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"Om"}', current_timestamp, current_timestamp),
-  (vellor_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'client@vellorliving.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"Vellor Living"}', current_timestamp, current_timestamp),
-  (oudfy_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'client@oudfyperfumes.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"Oudfy Perfumes"}', current_timestamp, current_timestamp),
-  (pamya_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'client@pamyajewels.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"Pamya Jewels"}', current_timestamp, current_timestamp);
+  (admin_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'admin@hastag.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"System Admin"}', current_timestamp, current_timestamp),
+  (sakshi_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'sakshi@hastag.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"Sakshi"}', current_timestamp, current_timestamp),
+  (om_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'om@hastag.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"Om"}', current_timestamp, current_timestamp),
+  (vellor_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'vellor@hastag.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"Vellor Living"}', current_timestamp, current_timestamp),
+  (oudfy_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'oudfy@hastag.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"Oudfy Perfumes"}', current_timestamp, current_timestamp),
+  (pamya_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'pamya@hastag.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"Pamya Jewels"}', current_timestamp, current_timestamp);
 
 -- NOTE: The trigger 'handle_new_user' automatically generates profiles and 'employee' roles.
 -- We must manually correct the clients' roles!
