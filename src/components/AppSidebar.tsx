@@ -48,7 +48,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <div className="flex items-center gap-2 mb-8 px-2">
-            <img src="/logo.svg" alt="Hastag Team Logo" className="h-8 w-auto object-contain" />
+            <img src="/logo.png" alt="Hastag Team Logo" className="h-8 w-auto object-contain" />
             {!collapsed && <span className="font-bold text-lg text-sidebar-foreground">Hastag-Team</span>}
           </div>
           <SidebarGroupContent>
