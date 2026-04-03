@@ -39,7 +39,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>
             {!collapsed && (
-              <span className="text-sidebar-primary font-bold text-base">ProductivityHub</span>
+              <span className="text-sidebar-primary font-bold text-base">Hastag-Team</span>
             )}
           </SidebarGroupLabel>
           <SidebarGroupContent>

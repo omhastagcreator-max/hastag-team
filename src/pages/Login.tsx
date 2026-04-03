@@ -41,7 +41,7 @@ export default function Login() {
           <div className="mx-auto w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
             <Clock className="h-6 w-6 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl font-bold">ProductivityHub</CardTitle>
+          <CardTitle className="text-2xl font-bold">Hastag-Team App</CardTitle>
           <CardDescription>Sign in to track your workday</CardDescription>
         </CardHeader>
         <CardContent>
