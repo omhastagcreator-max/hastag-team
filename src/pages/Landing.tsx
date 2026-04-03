@@ -29,7 +29,7 @@ export default function Landing() {
         <nav className="fixed top-0 w-full z-50 border-b border-border/40 bg-background/60 backdrop-blur-md">
           <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
+              <img src="/logo.svg" alt="Logo" className="h-8 w-8 object-contain" />
               <span className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500">
                 Hastag-Team
               </span>

@@ -50,7 +50,7 @@ export default function Login() {
                 transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
                 className="mx-auto flex items-center justify-center"
               >
-                <img src="/logo.png" alt="Hastag-Team Creator Logo" className="h-14 w-auto object-contain drop-shadow-xl" />
+                <img src="/logo.svg" alt="Hastag-Team Creator Logo" className="h-14 w-auto object-contain drop-shadow-xl" />
               </motion.div>
               <CardTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500">
                 Hastag-Team App
