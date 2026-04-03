@@ -38,9 +38,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>
-            {!collapsed && (
-              <span className="text-sidebar-primary font-bold text-base">Hastag-Team</span>
-            )}
+              <img src="/logo.png" alt="Hastag-Team Logo" className="h-8 w-auto object-contain" />
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>

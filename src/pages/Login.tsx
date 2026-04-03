@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Clock, Users } from 'lucide-react';
+import { Users } from 'lucide-react';
 
 export default function Login() {
   const { user, role, loading, signIn } = useAuth();
@@ -38,8 +38,8 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-md shadow-lg border-0">
         <CardHeader className="text-center space-y-3 pb-2">
-          <div className="mx-auto w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
-            <Clock className="h-6 w-6 text-primary-foreground" />
+          <div className="mx-auto flex items-center justify-center">
+            <img src="/logo.png" alt="Hastag-Team Creator Logo" className="h-12 w-auto object-contain" />
           </div>
           <CardTitle className="text-2xl font-bold">Hastag-Team App</CardTitle>
           <CardDescription>Sign in to track your workday</CardDescription>
