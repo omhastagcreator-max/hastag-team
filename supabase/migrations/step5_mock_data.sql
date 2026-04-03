@@ -39,10 +39,10 @@ UPDATE public.profiles SET team = 'marketing' WHERE user_id = sakshi_id;
 UPDATE public.profiles SET team = 'web_dev' WHERE user_id = om_id;
 
 -- 2. Create raw Deals (CRM abstraction) for the clients
-INSERT INTO public.deals (id, first_name, last_name, email, service_type, revenue, pipeline_stage) VALUES
-  (vellor_deal, 'Vellor', 'Living', 'client@vellorliving.com', 'Meta Ads', 5000, 'won'),
-  (oudfy_deal, 'Oudfy', 'Perfumes', 'client@oudfyperfumes.com', 'Website', 3500, 'won'),
-  (pamya_deal, 'Pamya', 'Jewels', 'client@pamyajewels.com', 'Combined', 8000, 'won');
+INSERT INTO public.deals (id, service_type, deal_value, status) VALUES
+  (vellor_deal, 'Meta Ads', 5000, 'won'),
+  (oudfy_deal, 'Website', 3500, 'won'),
+  (pamya_deal, 'Combined', 8000, 'won');
 
 -- 3. Tie Projects precisely to the Deals and Assign specific Leads
 INSERT INTO public.projects (id, name, deal_id, project_type, client_id, project_lead_id) VALUES
