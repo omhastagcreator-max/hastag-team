@@ -20,6 +20,16 @@ VALUES
   ('a5000000-0000-0000-0000-000000000000', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'oudfy@hastag.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"Oudfy Perfumes"}', current_timestamp, current_timestamp),
   ('a6000000-0000-0000-0000-000000000000', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'pamya@hastag.com', crypt('password123', gen_salt('bf')), current_timestamp, '{"provider":"email","providers":["email"]}', '{"name":"Pamya Jewels"}', current_timestamp, current_timestamp);
 
+-- Securely link auth identities so GoTrue (Supabase Auth) recognizes them perfectly during login without schema panics
+INSERT INTO auth.identities (id, user_id, provider_id, identity_data, provider, created_at, updated_at)
+VALUES
+  (gen_random_uuid(), 'a1000000-0000-0000-0000-000000000000', 'a1000000-0000-0000-0000-000000000000', '{"sub":"a1000000-0000-0000-0000-000000000000","email":"admin@hastag.com"}', 'email', current_timestamp, current_timestamp),
+  (gen_random_uuid(), 'a2000000-0000-0000-0000-000000000000', 'a2000000-0000-0000-0000-000000000000', '{"sub":"a2000000-0000-0000-0000-000000000000","email":"sakshi@hastag.com"}', 'email', current_timestamp, current_timestamp),
+  (gen_random_uuid(), 'a3000000-0000-0000-0000-000000000000', 'a3000000-0000-0000-0000-000000000000', '{"sub":"a3000000-0000-0000-0000-000000000000","email":"om@hastag.com"}', 'email', current_timestamp, current_timestamp),
+  (gen_random_uuid(), 'a4000000-0000-0000-0000-000000000000', 'a4000000-0000-0000-0000-000000000000', '{"sub":"a4000000-0000-0000-0000-000000000000","email":"vellor@hastag.com"}', 'email', current_timestamp, current_timestamp),
+  (gen_random_uuid(), 'a5000000-0000-0000-0000-000000000000', 'a5000000-0000-0000-0000-000000000000', '{"sub":"a5000000-0000-0000-0000-000000000000","email":"oudfy@hastag.com"}', 'email', current_timestamp, current_timestamp),
+  (gen_random_uuid(), 'a6000000-0000-0000-0000-000000000000', 'a6000000-0000-0000-0000-000000000000', '{"sub":"a6000000-0000-0000-0000-000000000000","email":"pamya@hastag.com"}', 'email', current_timestamp, current_timestamp);
+
 -- NOTE: The trigger 'handle_new_user' automatically generates profiles and 'employee' roles.
 -- We must manually correct the clients' roles!
 UPDATE public.user_roles SET role = 'client' WHERE user_id IN ('a4000000-0000-0000-0000-000000000000', 'a5000000-0000-0000-0000-000000000000', 'a6000000-0000-0000-0000-000000000000');
