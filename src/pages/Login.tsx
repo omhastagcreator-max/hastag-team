@@ -3,8 +3,11 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { PageTransition } from '@/components/ui/PageTransition';
+import { MotionCard } from '@/components/ui/MotionCard';
 import { Users } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function Login() {
   const { user, role, loading, signIn } = useAuth();
@@ -22,7 +25,7 @@ export default function Login() {
   }
 
   if (user && role) {
-    return <Navigate to={role === 'admin' ? '/admin' : '/dashboard'} replace />;
+    return <Navigate to={role === 'admin' ? '/admin' : role === 'client' ? '/client' : role === 'sales' ? '/sales' : '/dashboard'} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,48 +38,66 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
-      <Card className="w-full max-w-md shadow-lg border-0">
-        <CardHeader className="text-center space-y-3 pb-2">
-          <div className="mx-auto flex items-center justify-center">
-            <img src="/logo.png" alt="Hastag-Team Creator Logo" className="h-12 w-auto object-contain" />
-          </div>
-          <CardTitle className="text-2xl font-bold">Hastag-Team App</CardTitle>
-          <CardDescription>Sign in to track your workday</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="text-sm text-destructive bg-destructive/10 rounded-lg p-3">
-                {error}
-              </div>
-            )}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Email</label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@agency.com"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Password</label>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={submitting}>
-              {submitting ? 'Signing in...' : 'Sign In'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+    <PageTransition>
+      <div className="fixed inset-0 z-[0] bg-gradient-to-br from-primary/10 via-transparent to-purple-500/10 animate-gradient-xy pointer-events-none" />
+      <div className="min-h-screen flex items-center justify-center bg-transparent px-4 relative z-10">
+        <div className="w-full max-w-md">
+          <MotionCard delay={0.1} className="w-full shadow-2xl border-white/10 glass-panel">
+            <CardHeader className="text-center space-y-3 pb-2 pt-6">
+              <motion.div 
+                initial={{ scale: 0, rotate: -10 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
+                className="mx-auto flex items-center justify-center"
+              >
+                <img src="/logo.png" alt="Hastag-Team Creator Logo" className="h-14 w-auto object-contain drop-shadow-xl" />
+              </motion.div>
+              <CardTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500">
+                Hastag-Team App
+              </CardTitle>
+              <CardDescription className="text-foreground/70">Sign in to track your workday</CardDescription>
+            </CardHeader>
+            <CardContent className="pb-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-sm text-destructive bg-destructive/10 rounded-lg p-3 border border-destructive/20"
+                  >
+                    {error}
+                  </motion.div>
+                )}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground/90">Email</label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@agency.com"
+                    required
+                    className="bg-background/50 border-white/10 focus:bg-background/80 transition-colors"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground/90">Password</label>
+                  <Input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="bg-background/50 border-white/10 focus:bg-background/80 transition-colors"
+                  />
+                </div>
+                <Button type="submit" className="w-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow" disabled={submitting}>
+                  {submitting ? 'Signing in...' : 'Sign In'}
+                </Button>
+              </form>
+            </CardContent>
+          </MotionCard>
+        </div>
+      </div>
+    </PageTransition>
   );
 }

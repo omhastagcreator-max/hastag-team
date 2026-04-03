@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AnimatePresence } from "framer-motion";
 import Login from "./pages/Login";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import TasksPage from "./pages/TasksPage";
@@ -12,9 +13,41 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminEmployees from "./pages/AdminEmployees";
 import AdminEmployeeDetail from "./pages/AdminEmployeeDetail";
 import AdminReports from "./pages/AdminReports";
+import AdminProjects from "./pages/AdminProjects";
 import NotFound from "./pages/NotFound";
+import ClientDashboard from "./pages/ClientDashboard";
+import ProjectDetailsLead from "./pages/ProjectDetailsLead";
+import SalesDashboard from "./pages/SalesDashboard";
 
 const queryClient = new QueryClient();
+
+import Landing from "./pages/Landing";
+
+// ... existing imports ...
+
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<EmployeeDashboard />} />
+        <Route path="/dashboard/projects/:projectId" element={<ProjectDetailsLead />} />
+        <Route path="/tasks" element={<TasksPage />} />
+        <Route path="/workroom" element={<WorkRoom />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/employees" element={<AdminEmployees />} />
+        <Route path="/admin/employees/:userId" element={<AdminEmployeeDetail />} />
+        <Route path="/admin/reports" element={<AdminReports />} />
+        <Route path="/admin/projects" element={<AdminProjects />} />
+        <Route path="/client" element={<ClientDashboard />} />
+        <Route path="/sales" element={<SalesDashboard />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AnimatePresence>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -23,18 +56,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<EmployeeDashboard />} />
-            <Route path="/tasks" element={<TasksPage />} />
-            <Route path="/workroom" element={<WorkRoom />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/employees" element={<AdminEmployees />} />
-            <Route path="/admin/employees/:userId" element={<AdminEmployeeDetail />} />
-            <Route path="/admin/reports" element={<AdminReports />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AnimatedRoutes />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

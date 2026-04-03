@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface AppLayoutProps {
   children: ReactNode;
-  requiredRole?: 'admin' | 'employee';
+  requiredRole?: 'admin' | 'employee' | 'client' | 'sales';
 }
 
 export function AppLayout({ children, requiredRole }: AppLayoutProps) {
@@ -22,15 +22,16 @@ export function AppLayout({ children, requiredRole }: AppLayoutProps) {
 
   if (!user) return <Navigate to="/login" replace />;
   if (requiredRole && role !== requiredRole) {
-    return <Navigate to={role === 'admin' ? '/admin' : '/dashboard'} replace />;
+    return <Navigate to={role === 'admin' ? '/admin' : role === 'client' ? '/client' : role === 'sales' ? '/sales' : '/dashboard'} replace />;
   }
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="fixed inset-0 z-[0] bg-gradient-to-br from-primary/5 via-accent/5 to-purple-500/5 dark:from-primary/10 dark:via-accent/10 dark:to-purple-900/10 animate-gradient-xy pointer-events-none" />
+      <div className="min-h-screen flex w-full bg-transparent relative z-10">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center border-b bg-card px-4">
+          <header className="h-14 flex items-center border-b border-border/50 glass-panel px-4 sticky top-0 z-20">
             <SidebarTrigger />
           </header>
           <main className="flex-1 p-6 overflow-auto">

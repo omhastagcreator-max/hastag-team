@@ -1,4 +1,4 @@
-import { LayoutDashboard, ListTodo, Video, Users, BarChart3, LogOut } from 'lucide-react';
+import { LayoutDashboard, ListTodo, Video, Users, BarChart3, LogOut, Briefcase, TrendingUp, Target, Handshake } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -23,15 +23,25 @@ const employeeItems = [
 
 const adminItems = [
   { title: 'Overview', url: '/admin', icon: LayoutDashboard },
+  { title: 'Projects', url: '/admin/projects', icon: Briefcase },
   { title: 'Employees', url: '/admin/employees', icon: Users },
   { title: 'Reports', url: '/admin/reports', icon: BarChart3 },
+];
+
+const clientItems = [
+  { title: 'My Reports', url: '/client', icon: TrendingUp },
+];
+
+const salesItems = [
+  { title: 'Sales Dashboard', url: '/sales', icon: LayoutDashboard },
 ];
 
 export function AppSidebar() {
   const { role, profile, signOut } = useAuth();
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
-  const items = role === 'admin' ? adminItems : employeeItems;
+  
+  const items = role === 'admin' ? adminItems : role === 'client' ? clientItems : role === 'sales' ? salesItems : employeeItems;
 
   return (
     <Sidebar collapsible="icon">

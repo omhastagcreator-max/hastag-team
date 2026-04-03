@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Users, Clock, ListTodo, Activity } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { PageTransition } from '@/components/ui/PageTransition';
+import { MotionCard } from '@/components/ui/MotionCard';
+import { AdminScreenMonitor } from '@/components/AdminScreenMonitor';
 
 interface EmployeeSummary {
   user_id: string;
@@ -71,70 +74,77 @@ export default function AdminDashboard() {
 
   return (
     <AppLayout requiredRole="admin">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Admin Overview</h1>
+      <PageTransition>
+        <div className="max-w-6xl mx-auto space-y-6">
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60 drop-shadow-sm">Admin Overview</h1>
 
-        <div className="grid grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Users className="h-6 w-6 mx-auto mb-2 text-primary" />
-              <p className="text-2xl font-bold text-foreground">{employees.length}</p>
-              <p className="text-xs text-muted-foreground">Employees</p>
+          <div className="grid grid-cols-3 gap-6">
+            <MotionCard delay={0.1}>
+              <CardContent className="p-6 text-center h-full flex flex-col justify-center">
+                <Users className="h-8 w-8 mx-auto mb-3 text-primary drop-shadow-md" />
+                <p className="text-3xl font-bold text-foreground">{employees.length}</p>
+                <p className="text-sm text-muted-foreground mt-1">Employees</p>
+              </CardContent>
+            </MotionCard>
+            <MotionCard delay={0.2}>
+              <CardContent className="p-6 text-center h-full flex flex-col justify-center">
+                <Clock className="h-8 w-8 mx-auto mb-3 text-accent drop-shadow-md" />
+                <p className="text-3xl font-bold text-foreground">{totalHours.toFixed(1)}h</p>
+                <p className="text-sm text-muted-foreground mt-1">Today's Hours</p>
+              </CardContent>
+            </MotionCard>
+            <MotionCard delay={0.3}>
+              <CardContent className="p-6 text-center h-full flex flex-col justify-center">
+                <ListTodo className="h-8 w-8 mx-auto mb-3 text-primary drop-shadow-md" />
+                <p className="text-3xl font-bold text-foreground">{totalTasks}</p>
+                <p className="text-sm text-muted-foreground mt-1">Tasks Today</p>
+              </CardContent>
+            </MotionCard>
+          </div>
+
+          <AdminScreenMonitor />
+
+          <MotionCard delay={0.4} className="mt-6">
+            <CardHeader className="border-b border-border/50 bg-background/20 rounded-t-lg">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Activity className="h-5 w-5 text-primary" />
+                Employee Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {loading ? (
+                <p className="text-muted-foreground text-center py-8 animate-pulse">Loading data...</p>
+              ) : employees.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No employees found.</p>
+              ) : (
+                <div className="flex flex-col divide-y divide-border/50">
+                  {employees.map((emp) => (
+                    <div
+                      key={emp.user_id}
+                      className="flex items-center justify-between p-4 hover:bg-muted/40 cursor-pointer transition-colors group"
+                      onClick={() => navigate(`/admin/employees/${emp.user_id}`)}
+                    >
+                      <div>
+                        <p className="font-medium text-foreground group-hover:text-primary transition-colors">{emp.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{emp.email}</p>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className="text-foreground font-medium">{emp.todayHours.toFixed(1)}h</span>
+                        <Badge variant="secondary" className="glass transition-colors">{emp.todayTasks} tasks</Badge>
+                        {emp.todayHours > 0 && (
+                          <Badge className="bg-primary/20 text-primary hover:bg-primary/30 border-0 shadow-sm shadow-primary/20">
+                            <Activity className="h-3 w-3 mr-1" /> Active
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Clock className="h-6 w-6 mx-auto mb-2 text-accent" />
-              <p className="text-2xl font-bold text-foreground">{totalHours.toFixed(1)}h</p>
-              <p className="text-xs text-muted-foreground">Today's Hours</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <ListTodo className="h-6 w-6 mx-auto mb-2 text-primary" />
-              <p className="text-2xl font-bold text-foreground">{totalTasks}</p>
-              <p className="text-xs text-muted-foreground">Tasks Today</p>
-            </CardContent>
-          </Card>
+          </MotionCard>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Employee Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <p className="text-muted-foreground text-center py-4">Loading...</p>
-            ) : employees.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">No employees found.</p>
-            ) : (
-              <div className="space-y-3">
-                {employees.map((emp) => (
-                  <div
-                    key={emp.user_id}
-                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 cursor-pointer transition-colors"
-                    onClick={() => navigate(`/admin/employees/${emp.user_id}`)}
-                  >
-                    <div>
-                      <p className="font-medium text-foreground">{emp.name}</p>
-                      <p className="text-xs text-muted-foreground">{emp.email}</p>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className="text-muted-foreground">{emp.todayHours.toFixed(1)}h</span>
-                      <Badge variant="secondary">{emp.todayTasks} tasks</Badge>
-                      {emp.todayHours > 0 && (
-                        <Badge className="bg-primary/10 text-primary border-0">
-                          <Activity className="h-3 w-3 mr-1" /> Active
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      </PageTransition>
     </AppLayout>
   );
 }
