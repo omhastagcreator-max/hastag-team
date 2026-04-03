@@ -16,20 +16,20 @@ import {
 import { Button } from '@/components/ui/button';
 
 const employeeItems = [
-  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
+  { title: 'Dashboard', url: '/employee/dashboard', icon: LayoutDashboard },
   { title: 'My Tasks', url: '/tasks', icon: ListTodo },
   { title: 'Work Room', url: '/workroom', icon: Video },
 ];
 
 const adminItems = [
-  { title: 'Overview', url: '/admin', icon: LayoutDashboard },
+  { title: 'Overview', url: '/admin/dashboard', icon: LayoutDashboard },
   { title: 'Projects', url: '/admin/projects', icon: Briefcase },
   { title: 'Employees', url: '/admin/employees', icon: Users },
   { title: 'Reports', url: '/admin/reports', icon: BarChart3 },
 ];
 
 const clientItems = [
-  { title: 'My Reports', url: '/client', icon: TrendingUp },
+  { title: 'My Reports', url: '/client/dashboard', icon: TrendingUp },
 ];
 
 const salesItems = [
@@ -58,7 +58,7 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      end={item.url === '/admin' || item.url === '/dashboard'}
+                      end={item.url === '/admin/dashboard' || item.url === '/employee/dashboard'}
                       className="hover:bg-sidebar-accent/50"
                       activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
                     >

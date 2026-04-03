@@ -15,7 +15,7 @@ export default function AdminEmployees() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [role, setRole] = useState<'employee' | 'sales' | 'admin' | 'client'>('employee');
+  const [role, setRole] = useState<'employee' | 'admin' | 'client'>('employee');
   const [team, setTeam] = useState<'marketing' | 'web_dev' | 'content' | 'sales'>('web_dev');
   const [creating, setCreating] = useState(false);
 
@@ -86,7 +86,6 @@ export default function AdminEmployees() {
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="employee">Employee</SelectItem>
-                              <SelectItem value="sales">Sales</SelectItem>
                               <SelectItem value="client">Client</SelectItem>
                             </SelectContent>
                           </Select>

@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Progress } from "@/components/ui/progress";
 import { TrendingUp, TrendingDown, Minus, Activity, Target, CheckCircle2, Circle, Code2, Megaphone } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 interface Project {
@@ -132,8 +133,11 @@ export default function ClientDashboard() {
           </div>
 
           {!project && (
-            <div className="h-64 flex items-center justify-center">
-              <p className="text-muted-foreground animate-pulse">Initializing data streams...</p>
+            <div className="grid lg:grid-cols-3 gap-6 animate-pulse">
+              <Skeleton className="h-64 rounded-xl shadow-sm border border-border/20 md:col-span-1" />
+              <Skeleton className="h-64 rounded-xl shadow-sm border border-border/20 lg:col-span-2" />
+              <Skeleton className="h-72 rounded-xl shadow-sm border border-border/20 lg:col-span-2" />
+              <Skeleton className="h-72 rounded-xl shadow-sm border border-border/20 md:col-span-1" />
             </div>
           )}
 

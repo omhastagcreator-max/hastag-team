@@ -17,7 +17,7 @@ function TaskForm({ onSubmit, initial, onCancel }: {
   const [title, setTitle] = useState(initial?.title || '');
   const [category, setCategory] = useState(initial?.category || '');
   const [timeSpent, setTimeSpent] = useState(initial?.time_spent?.toString() || '');
-  const [status, setStatus] = useState(initial?.status || 'Ongoing');
+  const [status, setStatus] = useState(initial?.status || 'pending');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +28,7 @@ function TaskForm({ onSubmit, initial, onCancel }: {
       time_spent: timeSpent ? parseInt(timeSpent) : undefined,
       status,
     });
-    if (!initial) { setTitle(''); setCategory(''); setTimeSpent(''); setStatus('Ongoing'); }
+    if (!initial) { setTitle(''); setCategory(''); setTimeSpent(''); setStatus('pending'); }
   };
 
   return (
@@ -45,8 +45,9 @@ function TaskForm({ onSubmit, initial, onCancel }: {
         <Select value={status} onValueChange={setStatus}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="Ongoing">Ongoing</SelectItem>
-            <SelectItem value="Done">Done</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="ongoing">Ongoing</SelectItem>
+            <SelectItem value="done">Done</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -66,7 +67,7 @@ export function TaskList() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
 
-  const doneTasks = tasks.filter((t) => t.status === 'Done').length;
+  const doneTasks = tasks.filter((t) => t.status === 'done').length;
 
   return (
     <Card>
@@ -104,13 +105,13 @@ export function TaskList() {
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className={`font-medium text-sm ${task.status === 'Done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                        <span className={`font-medium text-sm ${task.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                           {task.title}
                         </span>
                         {task.category && (
                           <Badge variant="outline" className="text-xs">{task.category}</Badge>
                         )}
-                        <Badge variant={task.status === 'Done' ? 'default' : 'secondary'} className="text-xs">
+                        <Badge variant={task.status === 'done' ? 'default' : 'secondary'} className="text-xs">
                           {task.status}
                         </Badge>
                       </div>

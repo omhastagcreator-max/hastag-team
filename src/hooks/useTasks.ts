@@ -8,8 +8,11 @@ export interface Task {
   category: string | null;
   status: string;
   time_spent: number | null;
+  task_type: string;
   created_at: string;
-  user_id: string;
+  assigned_to: string | null;
+  assigned_by: string | null;
+  project_id: string | null;
 }
 
 export function useTasks() {
@@ -17,16 +20,14 @@ export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchTodayTasks = useCallback(async () => {
+  const fetchTasks = useCallback(async () => {
     if (!user) return;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     
+    // Fetch all tasks assigned to the employee
     const { data } = await supabase
-      .from('tasks')
+      .from('project_tasks')
       .select('*')
-      .eq('user_id', user.id)
-      .gte('created_at', today.toISOString())
+      .eq('assigned_to', user.id)
       .order('created_at', { ascending: false });
     
     setTasks(data || []);
@@ -34,19 +35,20 @@ export function useTasks() {
   }, [user]);
 
   useEffect(() => {
-    fetchTodayTasks();
-  }, [fetchTodayTasks]);
+    fetchTasks();
+  }, [fetchTasks]);
 
   const addTask = async (task: { title: string; category?: string; time_spent?: number; status?: string }) => {
     if (!user) return;
     const { data } = await supabase
-      .from('tasks')
+      .from('project_tasks')
       .insert({
-        user_id: user.id,
+        assigned_to: user.id,
         title: task.title,
         category: task.category || null,
         time_spent: task.time_spent || null,
-        status: task.status || 'Ongoing',
+        status: task.status || 'pending',
+        task_type: 'personal', // By default, adding from task list makes it personal
       })
       .select()
       .single();
@@ -56,7 +58,7 @@ export function useTasks() {
 
   const updateTask = async (id: string, updates: Partial<Pick<Task, 'title' | 'category' | 'status' | 'time_spent'>>) => {
     const { data } = await supabase
-      .from('tasks')
+      .from('project_tasks')
       .update(updates)
       .eq('id', id)
       .select()
@@ -65,9 +67,9 @@ export function useTasks() {
   };
 
   const deleteTask = async (id: string) => {
-    await supabase.from('tasks').delete().eq('id', id);
+    await supabase.from('project_tasks').delete().eq('id', id);
     setTasks((prev) => prev.filter((t) => t.id !== id));
   };
 
-  return { tasks, loading, addTask, updateTask, deleteTask, refresh: fetchTodayTasks };
+  return { tasks, loading, addTask, updateTask, deleteTask, refresh: fetchTasks };
 }

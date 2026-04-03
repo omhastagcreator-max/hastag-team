@@ -32,17 +32,26 @@ const AnimatedRoutes = () => {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<EmployeeDashboard />} />
-        <Route path="/dashboard/projects/:projectId" element={<ProjectDetailsLead />} />
+        
+        {/* Employee Routes */}
+        <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
+        <Route path="/employee/dashboard/projects/:projectId" element={<ProjectDetailsLead />} />
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/workroom" element={<WorkRoom />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        
+        {/* Admin Routes */}
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/employees" element={<AdminEmployees />} />
         <Route path="/admin/employees/:userId" element={<AdminEmployeeDetail />} />
         <Route path="/admin/reports" element={<AdminReports />} />
         <Route path="/admin/projects" element={<AdminProjects />} />
-        <Route path="/client" element={<ClientDashboard />} />
-        <Route path="/sales" element={<SalesDashboard />} />
+        
+        {/* Client Route */}
+        <Route path="/client/dashboard" element={<ClientDashboard />} />
+        
+        {/* Sales Route */}
+        <Route path="/sales/dashboard" element={<SalesDashboard />} />
+        
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>

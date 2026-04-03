@@ -21,6 +21,7 @@ export type Database = {
           id: string
           name: string
           team: Database["public"]["Enums"]["team_type"] | null
+          phone: string | null
           updated_at: string
           user_id: string
         }
@@ -30,6 +31,7 @@ export type Database = {
           id?: string
           name?: string
           team?: Database["public"]["Enums"]["team_type"] | null
+          phone?: string | null
           updated_at?: string
           user_id: string
         }
@@ -39,6 +41,7 @@ export type Database = {
           id?: string
           name?: string
           team?: Database["public"]["Enums"]["team_type"] | null
+          phone?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -100,36 +103,7 @@ export type Database = {
         }
         Relationships: []
       }
-      tasks: {
-        Row: {
-          category: string | null
-          created_at: string
-          id: string
-          status: string
-          time_spent: number | null
-          title: string
-          user_id: string
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string
-          id?: string
-          status?: string
-          time_spent?: number | null
-          title: string
-          user_id: string
-        }
-        Update: {
-          category?: string | null
-          created_at?: string
-          id?: string
-          status?: string
-          time_spent?: number | null
-          title?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
+
       user_roles: {
         Row: {
           id: string
@@ -249,30 +223,36 @@ export type Database = {
           assigned_to: string | null
           created_at: string
           id: string
-          project_id: string
+          project_id: string | null
           status: string
           task_type: string
           title: string
+          category: string | null
+          time_spent: number | null
         }
         Insert: {
           assigned_by?: string | null
           assigned_to?: string | null
           created_at?: string
           id?: string
-          project_id: string
+          project_id?: string | null
           status?: string
           task_type: string
           title: string
+          category?: string | null
+          time_spent?: number | null
         }
         Update: {
           assigned_by?: string | null
           assigned_to?: string | null
           created_at?: string
           id?: string
-          project_id?: string
+          project_id?: string | null
           status?: string
           task_type?: string
           title?: string
+          category?: string | null
+          time_spent?: number | null
         }
         Relationships: [
           {
@@ -293,6 +273,7 @@ export type Database = {
           name: string
           project_lead_id: string | null
           project_type: string
+          deadline: string | null
         }
         Insert: {
           client_id?: string | null
@@ -302,6 +283,7 @@ export type Database = {
           name: string
           project_lead_id?: string | null
           project_type: string
+          deadline?: string | null
         }
         Update: {
           client_id?: string | null
@@ -311,6 +293,7 @@ export type Database = {
           name?: string
           project_lead_id?: string | null
           project_type?: string
+          deadline?: string | null
         }
         Relationships: [
           {

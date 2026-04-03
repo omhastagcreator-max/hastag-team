@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Briefcase } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Profile {
   user_id: string;
@@ -164,7 +165,13 @@ export default function AdminProjects() {
                 <CardTitle>Active Projects</CardTitle>
               </CardHeader>
               <CardContent>
-                {loading ? <p className="text-muted-foreground animate-pulse">Loading...</p> : projects.length === 0 ? <p className="text-muted-foreground">No projects yet.</p> : (
+                {loading ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-20 w-full" />
+                  </div>
+                ) : projects.length === 0 ? <p className="text-muted-foreground">No projects yet.</p> : (
                   <div className="space-y-4">
                     {projects.map(p => (
                       <div key={p.id} className="p-4 border border-border/50 rounded-lg hover:bg-muted/40 transition-colors">
