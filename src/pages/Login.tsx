@@ -28,12 +28,22 @@ export default function Login() {
     return <Navigate to={role === 'admin' ? '/admin/dashboard' : role === 'client' ? '/client/dashboard' : role === 'sales' ? '/sales/dashboard' : '/employee/dashboard'} replace />;
   }
 
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSubmitting(true);
-    const { error } = await signIn(email, password);
-    if (error) setError(error.message);
+    
+    if (isForgotPassword) {
+      const { error } = await useAuth().resetPassword(email);
+      if (error) setError(error.message);
+      else setResetSent(true);
+    } else {
+      const { error } = await signIn(email, password);
+      if (error) setError(error.message);
+    }
     setSubmitting(false);
   };
 
@@ -79,20 +89,43 @@ export default function Login() {
                     className="bg-background/50 border-white/10 focus:bg-background/80 transition-colors"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground/90">Password</label>
-                  <Input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    className="bg-background/50 border-white/10 focus:bg-background/80 transition-colors"
-                  />
-                </div>
-                <Button type="submit" className="w-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow" disabled={submitting}>
-                  {submitting ? 'Signing in...' : 'Sign In'}
-                </Button>
+                
+                {!isForgotPassword && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium text-foreground/90">Password</label>
+                      <button type="button" onClick={() => setIsForgotPassword(true)} className="text-xs text-primary hover:underline" tabIndex={-1}>
+                        Forgot password?
+                      </button>
+                    </div>
+                    <Input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      className="bg-background/50 border-white/10 focus:bg-background/80 transition-colors"
+                    />
+                  </div>
+                )}
+
+                {resetSent && isForgotPassword ? (
+                  <div className="text-sm text-green-500 bg-green-500/10 rounded-lg p-3 border border-green-500/20 text-center">
+                    Check your email for the reset link!
+                  </div>
+                ) : (
+                  <Button type="submit" className="w-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow" disabled={submitting}>
+                    {submitting ? 'Please wait...' : isForgotPassword ? 'Send Reset Link' : 'Sign In'}
+                  </Button>
+                )}
+
+                {isForgotPassword && (
+                  <div className="text-center mt-4">
+                    <button type="button" onClick={() => { setIsForgotPassword(false); setResetSent(false); }} className="text-xs text-muted-foreground hover:text-foreground">
+                      Back to sign in
+                    </button>
+                  </div>
+                )}
               </form>
             </CardContent>
           </MotionCard>

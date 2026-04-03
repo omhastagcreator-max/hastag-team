@@ -44,7 +44,7 @@ ALTER TABLE public.project_tasks ADD COLUMN IF NOT EXISTS time_spent INTEGER;
 
 -- Migrate existing tasks over
 INSERT INTO public.project_tasks (assigned_to, title, category, status, time_spent, task_type, created_at)
-SELECT user_id, title, category, status, time_spent, 'personal', created_at FROM public.tasks;
+SELECT user_id, title, category, LOWER(status), time_spent, 'personal', created_at FROM public.tasks;
 
 -- Drop old tasks table completely
 DROP TABLE IF EXISTS public.tasks CASCADE;

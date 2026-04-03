@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import ClientDashboard from "./pages/ClientDashboard";
 import ProjectDetailsLead from "./pages/ProjectDetailsLead";
 import SalesDashboard from "./pages/SalesDashboard";
+import UpdatePassword from "./pages/UpdatePassword";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const AnimatedRoutes = () => {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/update-password" element={<UpdatePassword />} />
         
         {/* Employee Routes */}
         <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
