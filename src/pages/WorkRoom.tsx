@@ -1,6 +1,7 @@
 import { AppLayout } from '@/components/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Video } from 'lucide-react';
+import { JitsiMeeting } from '@jitsi/react-sdk';
 
 export default function WorkRoom() {
   return (
@@ -11,13 +12,23 @@ export default function WorkRoom() {
           Work Room
         </h1>
         <Card className="overflow-hidden">
-          <CardContent className="p-0">
-            <iframe
-              src="https://meet.jit.si/agency-work-room"
-              className="w-full border-0"
-              style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}
-              allow="camera; microphone; fullscreen; display-capture; autoplay"
-              title="Agency Work Room"
+          <CardContent className="p-0" style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
+            <JitsiMeeting
+              domain="meet.jit.si"
+              roomName="agency-work-room"
+              configOverwrite={{
+                startWithAudioMuted: true,
+                disableModeratorIndicator: true,
+                startScreenSharing: true,
+                enableEmailInStats: false
+              }}
+              interfaceConfigOverwrite={{
+                DISABLE_JOIN_LEAVE_NOTIFICATIONS: true
+              }}
+              getIFrameRef={(iframeRef) => {
+                iframeRef.style.height = '100%';
+                iframeRef.style.width = '100%';
+              }}
             />
           </CardContent>
         </Card>
