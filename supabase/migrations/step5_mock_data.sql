@@ -3,6 +3,12 @@
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+-- CLEANUP PREVIOUS RUNS TO AVOID "DUPLICATE KEY" ERRORS
+DELETE FROM public.project_tasks WHERE id IN ('t1000000-0000-0000-0000-000000000000');
+DELETE FROM public.projects WHERE id IN ('p1000000-0000-0000-0000-000000000000', 'p2000000-0000-0000-0000-000000000000', 'p3000000-0000-0000-0000-000000000000');
+DELETE FROM public.deals WHERE id IN ('d1000000-0000-0000-0000-000000000000', 'd2000000-0000-0000-0000-000000000000', 'd3000000-0000-0000-0000-000000000000');
+DELETE FROM auth.users WHERE email IN ('admin@hastag.com', 'sakshi@hastag.com', 'om@hastag.com', 'vellor@hastag.com', 'oudfy@hastag.com', 'pamya@hastag.com');
+
 -- 1. Insert explicitly into auth.users (Requires pgcrypto for password hash)
 -- All accounts share the password: password123
 INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
