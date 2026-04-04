@@ -15,6 +15,8 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   if (loading) {
     return (
@@ -27,9 +29,6 @@ export default function Login() {
   if (user && role) {
     return <Navigate to={role === 'admin' ? '/admin/dashboard' : role === 'client' ? '/client/dashboard' : role === 'sales' ? '/sales/dashboard' : '/employee/dashboard'} replace />;
   }
-
-  const [isForgotPassword, setIsForgotPassword] = useState(false);
-  const [resetSent, setResetSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

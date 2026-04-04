@@ -22,7 +22,7 @@ export function AppLayout({ children, requiredRole }: AppLayoutProps) {
 
   if (!user) return <Navigate to="/login" replace />;
   if (requiredRole && role !== requiredRole) {
-    return <Navigate to={role === 'admin' ? '/admin' : role === 'client' ? '/client' : role === 'sales' ? '/sales' : '/dashboard'} replace />;
+    return <Navigate to={role === 'admin' ? '/admin/dashboard' : role === 'client' ? '/client/dashboard' : role === 'sales' ? '/sales/dashboard' : '/employee/dashboard'} replace />;
   }
 
   return (

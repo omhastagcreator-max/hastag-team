@@ -51,7 +51,7 @@ export default function EmployeeDashboard() {
               </h2>
               <div className="grid md:grid-cols-3 gap-4">
                 {projects.map((p, i) => (
-                  <div key={p.id} onClick={() => navigate(`/dashboard/projects/${p.id}`)} className="cursor-pointer">
+                  <div key={p.id} onClick={() => navigate(`/employee/dashboard/projects/${p.id}`)} className="cursor-pointer">
                     <MotionCard delay={0.1 * i} className="hover:border-primary/50">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-lg">{p.name}</CardTitle>
