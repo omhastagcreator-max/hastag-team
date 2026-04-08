@@ -51,6 +51,7 @@ export default function ClientDashboard() {
   const [metrics, setMetrics] = useState<Metric[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [updates, setUpdates] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -59,11 +60,13 @@ export default function ClientDashboard() {
       if (!pData) return;
       setProject(pData);
 
-      const [cRes, mRes, gRes, tRes] = await Promise.all([
+      const [cRes, mRes, gRes, tRes, uRes] = await Promise.all([
         supabase.from('metric_config').select('*'),
         supabase.from('metrics').select('*').eq('project_id', pData.id).order('date', { ascending: true }),
         supabase.from('project_goals').select('*').eq('project_id', pData.id),
         supabase.from('project_tasks').select('*').eq('project_id', pData.id).order('created_at', { ascending: false }),
+        // @ts-ignore
+        supabase.from('project_updates').select('*, profiles!author_id(name)').eq('project_id', pData.id).order('created_at', { ascending: false })
       ]);
 
       if (cRes.data) {
@@ -74,10 +77,17 @@ export default function ClientDashboard() {
       if (mRes.data) setMetrics(mRes.data);
       if (gRes.data) setGoals(gRes.data);
       if (tRes.data) setTasks(tRes.data);
+      if (uRes.data) setUpdates(uRes.data);
     };
 
     fetchClientData();
   }, [user]);
+
+  const handleApproval = async (updateId: string, isApproved: boolean) => {
+    // @ts-ignore
+    await supabase.from('project_updates').update({ is_approved: isApproved }).eq('id', updateId);
+    setUpdates(updates.map(u => u.id === updateId ? { ...u, is_approved: isApproved } : u));
+  };
 
   const kpiData = useMemo(() => {
     if (!metrics.length) return [];
@@ -120,6 +130,18 @@ export default function ClientDashboard() {
   const completedDev = devTasks.filter(t => t.status === 'done').length;
   const totalDev = devTasks.length;
   const devProgress = totalDev > 0 ? (completedDev / totalDev) * 100 : 0;
+
+  // Calculate Health Score (0-100) based on Goal Targets + Dev Progress
+  const healthScore = useMemo(() => {
+    let score = devProgress; // Base score on dev progress
+    if (goals.length > 0) {
+      const avgGoalProgress = goals.reduce((acc, g) => acc + Math.min(100, (g.current_value / g.target_value) * 100), 0) / goals.length;
+      score = (score + avgGoalProgress) / 2;
+    }
+    // If no goals and no dev tasks, it's a new project
+    if (goals.length === 0 && totalDev === 0) return 100;
+    return Math.round(score);
+  }, [devProgress, goals, totalDev]);
 
   return (
     <AppLayout requiredRole="client">
@@ -177,6 +199,28 @@ export default function ClientDashboard() {
                        </CardContent>
                     </MotionCard>
                  )}
+
+                 {/* Project Health Score Widget */}
+                 <MotionCard delay={0.15} className="lg:col-span-1 border-purple-500/20 bg-gradient-to-b from-purple-500/5 to-transparent relative overflow-hidden flex flex-col justify-center items-center py-6">
+                    <CardHeader className="text-center pb-2">
+                       <CardTitle className="text-purple-500 text-lg flex items-center gap-2"><Target className="h-5 w-5"/> Project Health</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-col items-center justify-center pt-2">
+                       <div className="relative flex items-center justify-center w-32 h-32">
+                          <svg className="w-full h-full transform -rotate-90">
+                             <circle cx="64" cy="64" r="56" className="stroke-muted fill-none" strokeWidth="12" />
+                             <circle cx="64" cy="64" r="56" className={`${healthScore > 80 ? 'stroke-green-500' : healthScore > 50 ? 'stroke-yellow-500' : 'stroke-red-500'} fill-none transition-all duration-1000 ease-out`} strokeWidth="12" strokeDasharray="351.86" strokeDashoffset={351.86 - (351.86 * healthScore) / 100} strokeLinecap="round" />
+                          </svg>
+                          <div className="absolute flex items-center justify-center flex-col">
+                             <span className="text-3xl font-black">{healthScore}</span>
+                             <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">/ 100</span>
+                          </div>
+                       </div>
+                       <p className="text-sm text-center text-muted-foreground mt-4 px-4 leading-tight">
+                         {healthScore > 80 ? 'Exceptional pacing against timeline and targets.' : healthScore > 50 ? 'Pacing steadily, some goals demand attention.' : 'Critical attention needed to meet objectives.'}
+                       </p>
+                    </CardContent>
+                 </MotionCard>
 
                  {/* Marketing Performance Overview */}
                  {project.project_type !== 'website' && (
@@ -255,17 +299,32 @@ export default function ClientDashboard() {
                        <CardTitle className="text-lg flex items-center gap-2"><MessageSquare className="h-5 w-5 text-orange-500"/> Project Updates</CardTitle>
                      </CardHeader>
                      <CardContent className="space-y-4">
-                        <div className="space-y-3">
-                           {/* MVP Dummy Data */}
-                           <div className="p-3 border border-border/50 rounded-md bg-muted/10 relative">
-                              <div className="absolute top-3 right-3 h-2 w-2 bg-orange-500 rounded-full animate-pulse"></div>
-                              <p className="text-sm font-medium pr-4">Completed initial audit phase for primary pages.</p>
-                              <p className="text-xs text-muted-foreground mt-1">From Project Lead • 2 hours ago</p>
-                           </div>
-                           <div className="p-3 border border-border/50 rounded-md bg-muted/10">
-                              <p className="text-sm font-medium">Client kickoff successful. Access to ad accounts verified.</p>
-                              <p className="text-xs text-muted-foreground mt-1">From Project Lead • Yesterday</p>
-                           </div>
+                        <div className="space-y-3 max-h-80 overflow-auto">
+                           {updates.map(u => (
+                             <div key={u.id} className="p-4 border border-border/50 rounded-lg bg-muted/10 relative hover:bg-muted/20 transition-colors">
+                                {u.requires_approval && u.is_approved === null && (
+                                   <div className="absolute top-0 right-0 h-2 w-2 bg-orange-500 rounded-full animate-pulse -mt-1 -mr-1"></div>
+                                )}
+                                <div className="flex justify-between items-start">
+                                  <p className="text-sm font-medium flex-1">{u.content}</p>
+                                  {u.requires_approval && u.is_approved !== null && (
+                                     <span className={`text-xs ml-3 px-2 py-1 rounded-md font-semibold ${u.is_approved ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                                       {u.is_approved ? 'Approved' : 'Rejected'}
+                                     </span>
+                                  )}
+                                </div>
+                                
+                                {u.requires_approval && u.is_approved === null && (
+                                   <div className="mt-3 flex gap-2">
+                                     <button onClick={() => handleApproval(u.id, true)} className="flex-1 bg-green-500/10 hover:bg-green-500/20 text-green-500 text-xs py-1.5 rounded-md font-semibold transition-colors">👍 Approve</button>
+                                     <button onClick={() => handleApproval(u.id, false)} className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-500 text-xs py-1.5 rounded-md font-semibold transition-colors">👎 Reject</button>
+                                   </div>
+                                )}
+                                
+                                <p className="text-[11px] text-muted-foreground mt-3">From {u.profiles?.name || 'System'} • {new Date(u.created_at).toLocaleString()}</p>
+                             </div>
+                           ))}
+                           {updates.length === 0 && <p className="text-sm text-center py-4 text-muted-foreground">No updates posted yet.</p>}
                         </div>
                      </CardContent>
                    </MotionCard>

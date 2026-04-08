@@ -60,12 +60,10 @@ export default function ProjectDetailsLead() {
   const [metricValue, setMetricValue] = useState('');
   const [metricName, setMetricName] = useState('');
 
-  // Mock Updates for MVP
+  // Live Updates for MVP Phase 2
   const [newUpdate, setNewUpdate] = useState('');
-  const [updates, setUpdates] = useState([
-    { id: '1', date: '2 hours ago', text: 'Completed initial audit phase for primary pages.' },
-    { id: '2', date: 'Yesterday', text: 'Client kickoff successful. Access to ad accounts verified.' }
-  ]);
+  const [requiresApproval, setRequiresApproval] = useState(false);
+  const [updates, setUpdates] = useState<any[]>([]);
 
   const fetchData = async () => {
     if (!projectId) return;
@@ -83,6 +81,11 @@ export default function ProjectDetailsLead() {
     if (configData) setMetricConfigs(configData);
     if (!newGoalMetric && configData && configData.length > 0) setNewGoalMetric(configData[0].metric_name);
     if (!metricName && configData && configData.length > 0) setMetricName(configData[0].metric_name);
+
+    // Fetch live updates
+    // @ts-ignore
+    const { data: updatesData } = await supabase.from('project_updates').select('*, profiles!author_id(name)').eq('project_id', projectId).order('created_at', { ascending: false });
+    if (updatesData) setUpdates(updatesData);
 
     // Fetch members
     const { data: memData } = await supabase.from('project_members').select('user_id, profiles!inner(name)').eq('project_id', projectId);
@@ -167,12 +170,27 @@ export default function ProjectDetailsLead() {
     setMetricValue('');
   };
 
-  const addUpdate = (e: React.FormEvent) => {
+  const addUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newUpdate.trim()) return;
-    setUpdates([{ id: Date.now().toString(), date: 'Just now', text: newUpdate }, ...updates]);
+    if (!newUpdate.trim() || !projectId) return;
+    
+    // @ts-ignore
+    const { data, error } = await supabase.from('project_updates').insert({
+      project_id: projectId,
+      author_id: user?.id,
+      content: newUpdate.trim(),
+      requires_approval: requiresApproval
+    }).select('*, profiles!author_id(name)').single();
+    
+    if (error) {
+      toast.error('Failed to post project update');
+      return;
+    }
+    
+    setUpdates([data, ...updates]);
     setNewUpdate('');
-    toast.success('Project update posted');
+    setRequiresApproval(false);
+    toast.success('Project update posted live');
   };
 
   if (!project) return null;
@@ -300,17 +318,33 @@ export default function ProjectDetailsLead() {
                 <CardTitle>Project Updates (Brand Feed)</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <form onSubmit={addUpdate} className="flex gap-2">
-                   <Input value={newUpdate} onChange={e => setNewUpdate(e.target.value)} placeholder="Type an update for the brand owner..." required />
-                   <Button type="submit">Post Update</Button>
+                <form onSubmit={addUpdate} className="flex flex-col gap-3">
+                   <div className="flex gap-2">
+                     <Input value={newUpdate} onChange={e => setNewUpdate(e.target.value)} placeholder="Type an update for the brand owner..." required />
+                     <Button type="submit">Post Update</Button>
+                   </div>
+                   <label className="flex items-center gap-2 text-sm cursor-pointer text-muted-foreground w-max">
+                     <input type="checkbox" checked={requiresApproval} onChange={e => setRequiresApproval(e.target.checked)} className="rounded border-gray-300" />
+                     Request explicit Client Approval for this update
+                   </label>
                 </form>
-                <div className="space-y-2 mt-4 max-h-40 overflow-auto">
+                <div className="space-y-2 mt-4 max-h-60 overflow-auto">
                    {updates.map(u => (
-                     <div key={u.id} className="p-3 border border-border/50 rounded-md bg-muted/10">
-                        <p className="text-sm">{u.text}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{u.date}</p>
+                     <div key={u.id} className="p-3 border border-border/50 rounded-md bg-muted/10 relative">
+                        {u.requires_approval && (
+                           <div className="absolute top-3 right-3 flex items-center gap-2">
+                              {u.is_approved === true && <span className="text-xs bg-green-500/10 text-green-500 px-2 py-1 rounded">Approved</span>}
+                              {u.is_approved === false && <span className="text-xs bg-red-500/10 text-red-500 px-2 py-1 rounded">Rejected</span>}
+                              {u.is_approved === null && <span className="text-xs bg-yellow-500/10 text-yellow-500 px-2 py-1 rounded">Awaiting Approval</span>}
+                           </div>
+                        )}
+                        <p className="text-sm font-medium pr-24">{u.content}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          From {u.profiles?.name || 'System'} • {new Date(u.created_at).toLocaleString()}
+                        </p>
                      </div>
                    ))}
+                   {updates.length === 0 && <p className="text-sm text-center py-4 text-muted-foreground">No updates posted yet.</p>}
                 </div>
               </CardContent>
             </MotionCard>
