@@ -18,9 +18,11 @@ interface Project {
 }
 
 import { ScreenShareEmployee } from '@/components/ScreenShareEmployee';
-
+import { WebDevWidget } from '@/components/domain/WebDevWidget';
+import { MarketingWidget } from '@/components/domain/MarketingWidget';
+import { ContentWidget } from '@/components/domain/ContentWidget';
 export default function EmployeeDashboard() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
 
@@ -65,6 +67,11 @@ export default function EmployeeDashboard() {
               </div>
             </div>
           )}
+
+          {/* Domain-specific widgets inserted dynamically before universal wrappers */}
+          {profile?.team === 'web_dev' && <WebDevWidget />}
+          {profile?.team === 'marketing' && <MarketingWidget brands={projects} />}
+          {profile?.team === 'content' && <ContentWidget brands={projects} />}
 
           <TodaySummary />
           <div className="grid md:grid-cols-2 gap-6">

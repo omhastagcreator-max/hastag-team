@@ -6,10 +6,12 @@ import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Target, Handshake, Users, DollarSign, PlusCircle, ArrowRightCircle } from 'lucide-react';
+import { Target, Handshake, Users, DollarSign, PlusCircle, ArrowRightCircle, MessageSquare, Video } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface Lead {
   id: string;
@@ -27,8 +29,15 @@ interface Deal {
   status: string;
 }
 
+interface LeadResponse {
+  id: string;
+  note: string;
+  created_at: string;
+}
+
 export default function SalesDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   
@@ -42,8 +51,12 @@ export default function SalesDashboard() {
   const [dealValue, setDealValue] = useState('');
   const [serviceType, setServiceType] = useState('combined');
 
+  // Lead Response Log state
+  const [activeLead, setActiveLead] = useState<Lead | null>(null);
+  const [leadResponses, setLeadResponses] = useState<LeadResponse[]>([]);
+  const [newNote, setNewNote] = useState('');
+
   const fetchData = async () => {
-    // In real app, consider pagination or assigned_to filtering
     const { data: leadsData } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
     if (leadsData) setLeads(leadsData);
 
@@ -75,7 +88,7 @@ export default function SalesDashboard() {
 
   const updateLeadStatus = async (id: string, nextStatus: string) => {
     await supabase.from('leads').update({ status: nextStatus }).eq('id', id);
-    toast.success('Lead status shifted! ⚡');
+    toast.success('Lead moved! ⚡');
     fetchData();
   };
 
@@ -97,6 +110,29 @@ export default function SalesDashboard() {
     fetchData();
   };
 
+  const handleOpenLead = async (lead: Lead) => {
+    setActiveLead(lead);
+    const { data } = await supabase.from('lead_responses').select('*').eq('lead_id', lead.id).order('created_at', { ascending: false });
+    setLeadResponses(data || []);
+  };
+
+  const handleAddNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeLead || !newNote) return;
+    
+    const { data } = await supabase.from('lead_responses').insert({
+      lead_id: activeLead.id,
+      user_id: user?.id,
+      note: newNote
+    }).select().single();
+    
+    if (data) {
+      setLeadResponses([data, ...leadResponses]);
+    }
+    setNewNote('');
+    toast.success('Response logged!');
+  };
+
   const stats = useMemo(() => {
     const revenue = deals.filter(d => d.status !== 'lost').reduce((sum, d) => sum + Number(d.deal_value), 0);
     const wonDeals = deals.filter(d => d.status === 'won').length;
@@ -104,85 +140,84 @@ export default function SalesDashboard() {
     return { revenue, wonDeals, openDeals };
   }, [deals]);
 
+  const stages = ['new', 'contacted', 'qualified'];
+
   return (
     <AppLayout requiredRole="sales">
       <PageTransition>
-        <div className="max-w-6xl mx-auto space-y-8">
-          <div className="flex items-center gap-2 mb-4">
-             <Target className="h-8 w-8 text-primary animate-pulse" />
-             <h1 className="text-4xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-accent drop-shadow-sm">Sales Command Center</h1>
+        <div className="max-w-7xl mx-auto space-y-8">
+          <div className="flex items-center justify-between mb-4">
+             <div className="flex items-center gap-2">
+               <Target className="h-8 w-8 text-primary animate-pulse" />
+               <h1 className="text-4xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-accent drop-shadow-sm">Sales CRM</h1>
+             </div>
+             <Button onClick={() => navigate('/workroom')} variant="outline" className="gap-2 border-primary/20 text-primary hover:bg-primary/10">
+               <Video className="h-4 w-4" /> Start Demo WorkRoom
+             </Button>
           </div>
 
           {/* Revenue Top Banner */}
           <div className="grid md:grid-cols-3 gap-6">
-            <MotionCard delay={0.1} className="bg-gradient-to-br from-green-500/20 to-emerald-500/5 hover:border-green-500/50">
+            <MotionCard delay={0.1} className="bg-gradient-to-br from-green-500/20 to-emerald-500/5 border-green-500/20">
               <CardContent className="p-6">
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Total Pipeline Rev</p>
-                    <h2 className="text-4xl font-extrabold flex items-center">
-                      <DollarSign className="h-8 w-8 text-emerald-500 -ml-1" />
+                    <h2 className="text-3xl font-extrabold flex items-center">
+                      <DollarSign className="h-6 w-6 text-emerald-500 -ml-1" />
                       {stats.revenue.toLocaleString()}
                     </h2>
-                  </div>
-                  <div className="p-3 bg-emerald-500/20 rounded-xl backdrop-blur-md">
-                     <DollarSign className="h-6 w-6 text-emerald-500" />
                   </div>
                 </div>
               </CardContent>
             </MotionCard>
             
-            <MotionCard delay={0.2} className="bg-gradient-to-br from-blue-500/20 to-cyan-500/5 hover:border-blue-500/50">
+            <MotionCard delay={0.2} className="bg-gradient-to-br from-blue-500/20 to-cyan-500/5 border-blue-500/20">
               <CardContent className="p-6">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Active Open Deals</p>
-                    <h2 className="text-4xl font-extrabold text-blue-500">{stats.openDeals}</h2>
-                  </div>
-                  <div className="p-3 bg-blue-500/20 rounded-xl backdrop-blur-md">
-                     <Handshake className="h-6 w-6 text-blue-500" />
+                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Open Deals</p>
+                    <h2 className="text-3xl font-extrabold text-blue-500">{stats.openDeals}</h2>
                   </div>
                 </div>
               </CardContent>
             </MotionCard>
 
-            <MotionCard delay={0.3} className="bg-gradient-to-br from-purple-500/20 to-fuchsia-500/5 hover:border-purple-500/50">
+            <MotionCard delay={0.3} className="bg-gradient-to-br from-purple-500/20 to-fuchsia-500/5 border-purple-500/20">
               <CardContent className="p-6">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Total Active Leads</p>
-                    <h2 className="text-4xl font-extrabold text-purple-500">
+                    <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Active Leads</p>
+                    <h2 className="text-3xl font-extrabold text-purple-500">
                       {leads.filter(l => l.status !== 'converted' && l.status !== 'lost').length}
                     </h2>
-                  </div>
-                  <div className="p-3 bg-purple-500/20 rounded-xl backdrop-blur-md">
-                     <Users className="h-6 w-6 text-purple-500" />
                   </div>
                 </div>
               </CardContent>
             </MotionCard>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-4 gap-6">
+            {/* Lead Creation Form */}
             <div className="lg:col-span-1 space-y-6">
               <MotionCard delay={0.4}>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><PlusCircle className="text-primary h-5 w-5" /> Ignite New Lead</CardTitle>
+                  <CardTitle className="flex items-center gap-2 text-lg"><PlusCircle className="text-primary h-5 w-5" /> New Lead</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleCreateLead} className="space-y-4">
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Prospect Name</label>
-                      <Input value={name} onChange={e => setName(e.target.value)} required placeholder="Elon Musk" className="bg-background/50 focus:bg-background transition-colors" />
+                      <label className="text-xs font-semibold text-muted-foreground uppercase">Name</label>
+                      <Input value={name} onChange={e => setName(e.target.value)} required placeholder="Elon Musk" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contact Info</label>
-                      <Input value={contact} onChange={e => setContact(e.target.value)} required placeholder="elon@x.com" className="bg-background/50 focus:bg-background transition-colors"/>
+                      <label className="text-xs font-semibold text-muted-foreground uppercase">Contact Info</label>
+                      <Input value={contact} onChange={e => setContact(e.target.value)} required placeholder="elon@x.com" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Traffic Source</label>
+                      <label className="text-xs font-semibold text-muted-foreground uppercase">Source</label>
                       <Select value={source} onValueChange={setSource}>
-                         <SelectTrigger className="bg-background/50 focus:bg-background"><SelectValue placeholder="Source..."/></SelectTrigger>
+                         <SelectTrigger><SelectValue placeholder="Source..."/></SelectTrigger>
                          <SelectContent>
                             <SelectItem value="Inbound">Inbound</SelectItem>
                             <SelectItem value="Outbound">Outbound</SelectItem>
@@ -190,100 +225,127 @@ export default function SalesDashboard() {
                          </SelectContent>
                       </Select>
                     </div>
-                    <Button type="submit" className="w-full font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all">Launch Lead 🚀</Button>
+                    <Button type="submit" className="w-full">Launch Lead 🚀</Button>
                   </form>
                 </CardContent>
               </MotionCard>
-
-              {/* Conversion Modal Card Inline */}
-              {convertingLeadId && (
-                <MotionCard delay={0.1} className="border-green-500 shadow-xl shadow-green-500/20">
-                  <CardHeader>
-                    <CardTitle className="text-green-500 flex items-center gap-2">💰 Structure Deal</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleConvert} className="space-y-4">
-                      <div className="space-y-1">
-                        <label className="text-xs font-semibold text-muted-foreground uppercase">Projected Value ($)</label>
-                        <Input type="number" value={dealValue} onChange={e => setDealValue(e.target.value)} required placeholder="10000" />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-semibold text-muted-foreground uppercase">Service Pitch</label>
-                        <Select value={serviceType} onValueChange={setServiceType}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                             <SelectItem value="ads">Marketing Ads</SelectItem>
-                             <SelectItem value="website">Web Development</SelectItem>
-                             <SelectItem value="combined">Combined Stack</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex gap-2">
-                         <Button type="submit" className="flex-1 bg-green-500 hover:bg-green-600 text-white">Seal IT!</Button>
-                         <Button type="button" variant="ghost" onClick={() => setConvertingLeadId(null)}>Hold up</Button>
-                      </div>
-                    </form>
-                  </CardContent>
-                </MotionCard>
-              )}
             </div>
 
-            <div className="lg:col-span-2 space-y-6">
-              <MotionCard delay={0.5} className="h-[600px] flex flex-col">
-                <CardHeader className="pb-4 border-b border-border/50">
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Active Leads Engine</span>
-                    <span className="text-xs bg-primary/20 text-primary px-3 py-1 rounded-full">{leads.filter(l => l.status !== 'converted').length} active</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
-                  {leads.filter(l => l.status !== 'converted' && l.status !== 'lost').map(lead => (
-                    <div key={lead.id} className="group relative flex items-center justify-between p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/50 hover:border-primary/30 hover:shadow-md transition-all">
-                       <div>
-                         <h3 className="font-bold text-lg">{lead.name}</h3>
-                         <p className="text-sm text-muted-foreground flex items-center gap-2">
-                           <span>{lead.contact}</span> 
-                           {lead.source && <span className="bg-background px-2 py-0.5 rounded text-xs border border-border/50">{lead.source}</span>}
-                         </p>
-                       </div>
-                       
-                       <div className="flex items-center gap-3">
-                          <Select value={lead.status} onValueChange={(val) => updateLeadStatus(lead.id, val)}>
-                            <SelectTrigger className="w-[130px] h-8 text-xs font-medium bg-background">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="new">New</SelectItem>
-                              <SelectItem value="contacted">Contacted</SelectItem>
-                              <SelectItem value="qualified">Qualified</SelectItem>
-                              <SelectItem value="lost">Lost</SelectItem>
-                            </SelectContent>
-                          </Select>
-
-                          <Button 
-                            size="sm" 
-                            variant="default"
-                            className="h-8 shadow-sm group-hover:scale-105 transition-transform"
-                            onClick={() => setConvertingLeadId(lead.id)}
-                            disabled={convertingLeadId === lead.id}
+            {/* Kanban Board */}
+            <div className="lg:col-span-3">
+              <div className="grid grid-cols-3 gap-4">
+                {stages.map((stage) => {
+                  const stageLeads = leads.filter(l => l.status === stage);
+                  return (
+                    <div key={stage} className="flex flex-col h-[600px] border border-border/50 bg-card/30 rounded-xl overflow-hidden p-3 gap-3">
+                      <div className="flex items-center justify-between border-b pb-2">
+                        <h3 className="font-bold text-sm uppercase tracking-wide px-2 py-1 bg-muted rounded">{stage}</h3>
+                        <span className="text-xs font-bold text-muted-foreground">{stageLeads.length}</span>
+                      </div>
+                      <div className="flex-1 overflow-y-auto space-y-3 p-1">
+                        {stageLeads.map(lead => (
+                          <div 
+                            key={lead.id} 
+                            onClick={() => handleOpenLead(lead)}
+                            className="p-3 bg-card border border-border hover:border-primary/50 rounded-lg shadow-sm cursor-pointer transition-all hover:shadow-md"
                           >
-                            Convert <ArrowRightCircle className="h-4 w-4 ml-1" />
-                          </Button>
-                       </div>
+                            <h4 className="font-bold text-sm">{lead.name}</h4>
+                            <p className="text-xs text-muted-foreground truncate mb-3">{lead.contact}</p>
+                            <div className="flex justify-between items-center">
+                              {stage !== 'qualified' ? (
+                                <Button 
+                                  size="sm" 
+                                  variant="secondary" 
+                                  className="h-6 text-xs px-2"
+                                  onClick={(e) => { e.stopPropagation(); updateLeadStatus(lead.id, stages[stages.indexOf(stage) + 1]); }}
+                                >
+                                  Advance &rarr;
+                                </Button>
+                              ) : (
+                                <Button 
+                                  size="sm" 
+                                  className="h-6 text-xs px-2 bg-green-500 hover:bg-green-600 text-white"
+                                  onClick={(e) => { e.stopPropagation(); setConvertingLeadId(lead.id); }}
+                                >
+                                  Convert <DollarSign className="w-3 h-3 ml-1" />
+                                </Button>
+                              )}
+                              {lead.source && <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded">{lead.source}</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ))}
-                  {leads.length === 0 && (
-                    <div className="h-full flex flex-col items-center justify-center opacity-50">
-                      <Target className="h-16 w-16 mb-4" />
-                      <p>Pipeline empty. Time to hunt.</p>
-                    </div>
-                  )}
-                </CardContent>
-              </MotionCard>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
       </PageTransition>
+
+      <Dialog open={convertingLeadId !== null} onOpenChange={(o) => !o && setConvertingLeadId(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Convert to Deal</DialogTitle></DialogHeader>
+          <form onSubmit={handleConvert} className="space-y-4 pt-4">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Projected Value ($)</label>
+              <Input type="number" value={dealValue} onChange={e => setDealValue(e.target.value)} required placeholder="10000" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Service Pitch</label>
+              <Select value={serviceType} onValueChange={setServiceType}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                   <SelectItem value="ads">Marketing Ads</SelectItem>
+                   <SelectItem value="website">Web Development</SelectItem>
+                   <SelectItem value="combined">Combined Stack</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="submit" className="w-full bg-green-500 hover:bg-green-600">Seal IT!</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeLead !== null} onOpenChange={(o) => !o && setActiveLead(null)}>
+        <DialogContent className="max-w-2xl h-[80vh] flex flex-col">
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="text-xl flex items-center justify-between">
+              <div>
+                {activeLead?.name}
+                <p className="text-sm text-muted-foreground font-normal mt-1">{activeLead?.contact}</p>
+              </div>
+              <Badge variant="secondary" className="uppercase text-xs">{activeLead?.status}</Badge>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto py-4 space-y-4">
+            <h4 className="font-bold flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Activity & Responses</h4>
+            {leadResponses.map(res => (
+              <div key={res.id} className="bg-muted/50 p-3 rounded-lg border border-border/50 text-sm">
+                <p className="text-foreground">{res.note}</p>
+                <span className="text-xs text-muted-foreground mt-2 block">{new Date(res.created_at).toLocaleString()}</span>
+              </div>
+            ))}
+            {leadResponses.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-8">No responses logged yet.</p>
+            )}
+          </div>
+          
+          <div className="border-t pt-4">
+             <form onSubmit={handleAddNote} className="flex gap-2">
+               <Input value={newNote} onChange={(e) => setNewNote(e.target.value)} placeholder="Logged a call, sent an email..." required />
+               <Button type="submit">Log Activity</Button>
+             </form>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
+}
+
+// Ensure Badge is imported (Missing in top block, I will just add the fallback line here)
+function Badge({ children, variant, className }: any) {
+  return <span className={`px-2 py-1 rounded text-xs font-semibold ${className} ${variant==='secondary'?'bg-muted text-foreground':'bg-primary text-white'}`}>{children}</span>;
 }
