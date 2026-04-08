@@ -5,7 +5,7 @@ import { MotionCard } from '@/components/ui/MotionCard';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { Progress } from "@/components/ui/progress";
-import { TrendingUp, TrendingDown, Minus, Activity, Target, CheckCircle2, Circle, Code2, Megaphone } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Activity, Target, CheckCircle2, Circle, Code2, Megaphone, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -247,6 +247,26 @@ export default function ClientDashboard() {
                            <Progress value={Math.min(100, (g.current_value / g.target_value) * 100)} className="h-2.5 shadow-inner" />
                          </div>
                        )) : <p className="text-muted-foreground text-sm border border-dashed rounded-lg p-4 text-center">No strategic goals defined.</p>}
+                     </CardContent>
+                   </MotionCard>
+                   
+                   <MotionCard delay={0.6} className="shadow-sm">
+                     <CardHeader>
+                       <CardTitle className="text-lg flex items-center gap-2"><MessageSquare className="h-5 w-5 text-orange-500"/> Project Updates</CardTitle>
+                     </CardHeader>
+                     <CardContent className="space-y-4">
+                        <div className="space-y-3">
+                           {/* MVP Dummy Data */}
+                           <div className="p-3 border border-border/50 rounded-md bg-muted/10 relative">
+                              <div className="absolute top-3 right-3 h-2 w-2 bg-orange-500 rounded-full animate-pulse"></div>
+                              <p className="text-sm font-medium pr-4">Completed initial audit phase for primary pages.</p>
+                              <p className="text-xs text-muted-foreground mt-1">From Project Lead • 2 hours ago</p>
+                           </div>
+                           <div className="p-3 border border-border/50 rounded-md bg-muted/10">
+                              <p className="text-sm font-medium">Client kickoff successful. Access to ad accounts verified.</p>
+                              <p className="text-xs text-muted-foreground mt-1">From Project Lead • Yesterday</p>
+                           </div>
+                        </div>
                      </CardContent>
                    </MotionCard>
                 </div>

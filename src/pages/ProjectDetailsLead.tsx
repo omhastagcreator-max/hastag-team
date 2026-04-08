@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ArrowLeft, Target, ListTodo, TrendingUp, CheckCircle2, Circle, Users } from 'lucide-react';
+import { ArrowLeft, Target, ListTodo, TrendingUp, CheckCircle2, Circle, Users, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Project {
@@ -59,6 +59,13 @@ export default function ProjectDetailsLead() {
   
   const [metricValue, setMetricValue] = useState('');
   const [metricName, setMetricName] = useState('');
+
+  // Mock Updates for MVP
+  const [newUpdate, setNewUpdate] = useState('');
+  const [updates, setUpdates] = useState([
+    { id: '1', date: '2 hours ago', text: 'Completed initial audit phase for primary pages.' },
+    { id: '2', date: 'Yesterday', text: 'Client kickoff successful. Access to ad accounts verified.' }
+  ]);
 
   const fetchData = async () => {
     if (!projectId) return;
@@ -158,6 +165,14 @@ export default function ProjectDetailsLead() {
     if (error) toast.error('Failed to update metric or already updated today');
     else toast.success('Daily metric updated');
     setMetricValue('');
+  };
+
+  const addUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUpdate.trim()) return;
+    setUpdates([{ id: Date.now().toString(), date: 'Just now', text: newUpdate }, ...updates]);
+    setNewUpdate('');
+    toast.success('Project update posted');
   };
 
   if (!project) return null;
@@ -276,6 +291,26 @@ export default function ProjectDetailsLead() {
                       <div className="text-xs text-muted-foreground mt-1">Current: {g.current_value} / Target: {g.target_value} {g.metric_name}</div>
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </MotionCard>
+            <MotionCard delay={0.25} className="md:col-span-2">
+              <CardHeader className="flex flex-row items-center gap-2 pb-2">
+                <MessageSquare className="h-5 w-5 text-orange-500" />
+                <CardTitle>Project Updates (Brand Feed)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <form onSubmit={addUpdate} className="flex gap-2">
+                   <Input value={newUpdate} onChange={e => setNewUpdate(e.target.value)} placeholder="Type an update for the brand owner..." required />
+                   <Button type="submit">Post Update</Button>
+                </form>
+                <div className="space-y-2 mt-4 max-h-40 overflow-auto">
+                   {updates.map(u => (
+                     <div key={u.id} className="p-3 border border-border/50 rounded-md bg-muted/10">
+                        <p className="text-sm">{u.text}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{u.date}</p>
+                     </div>
+                   ))}
                 </div>
               </CardContent>
             </MotionCard>

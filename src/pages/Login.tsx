@@ -10,7 +10,7 @@ import { Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Login() {
-  const { user, role, loading, signIn } = useAuth();
+  const { user, role, loading, signIn, resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -36,7 +36,7 @@ export default function Login() {
     setSubmitting(true);
     
     if (isForgotPassword) {
-      const { error } = await useAuth().resetPassword(email);
+      const { error } = await resetPassword!(email);
       if (error) setError(error.message);
       else setResetSent(true);
     } else {

@@ -36,6 +36,9 @@ export function useTasks() {
 
   useEffect(() => {
     fetchTasks();
+    const onTasksUpdated = () => fetchTasks();
+    window.addEventListener('tasks_updated', onTasksUpdated);
+    return () => window.removeEventListener('tasks_updated', onTasksUpdated);
   }, [fetchTasks]);
 
   const addTask = async (task: { title: string; category?: string; time_spent?: number; status?: string }) => {
@@ -52,7 +55,10 @@ export function useTasks() {
       })
       .select()
       .single();
-    if (data) setTasks((prev) => [data, ...prev]);
+    if (data) {
+      setTasks((prev) => [data, ...prev]);
+      window.dispatchEvent(new Event('tasks_updated'));
+    }
     return data;
   };
 
@@ -63,12 +69,16 @@ export function useTasks() {
       .eq('id', id)
       .select()
       .single();
-    if (data) setTasks((prev) => prev.map((t) => (t.id === id ? data : t)));
+    if (data) {
+      setTasks((prev) => prev.map((t) => (t.id === id ? data : t)));
+      window.dispatchEvent(new Event('tasks_updated'));
+    }
   };
 
   const deleteTask = async (id: string) => {
     await supabase.from('project_tasks').delete().eq('id', id);
     setTasks((prev) => prev.filter((t) => t.id !== id));
+    window.dispatchEvent(new Event('tasks_updated'));
   };
 
   return { tasks, loading, addTask, updateTask, deleteTask, refresh: fetchTasks };

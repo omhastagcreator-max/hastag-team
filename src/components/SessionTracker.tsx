@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, Square, Coffee } from 'lucide-react';
 import { useSession } from '@/hooks/useSession';
-
+import { useTasks } from '@/hooks/useTasks';
+import { toast } from 'sonner';
 function formatDuration(ms: number) {
   const totalSeconds = Math.floor(ms / 1000);
   const h = Math.floor(totalSeconds / 3600);
@@ -14,6 +15,7 @@ function formatDuration(ms: number) {
 
 export function SessionTracker() {
   const { activeSession, isOnBreak, breakStart, startWork, startBreak, endBreak, endWork } = useSession();
+  const { tasks } = useTasks();
   const [elapsed, setElapsed] = useState(0);
   const [breakElapsed, setBreakElapsed] = useState(0);
 
@@ -39,6 +41,17 @@ export function SessionTracker() {
   const totalBreakMs = (activeSession?.break_time || 0) * 60000 + breakElapsed;
   const workingMs = elapsed - totalBreakMs;
 
+  const todayTasks = tasks.filter(t => new Date(t.created_at).toDateString() === new Date().toDateString());
+  const canStartWork = todayTasks.length >= 3;
+
+  const handleStartWork = () => {
+    if (todayTasks.length < 3) {
+      toast.error('You must add at least 3 tasks for today before starting work.');
+      return;
+    }
+    startWork();
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -50,8 +63,10 @@ export function SessionTracker() {
       <CardContent>
         {!activeSession ? (
           <div className="text-center py-6">
-            <p className="text-muted-foreground mb-4">Ready to start your workday?</p>
-            <Button onClick={startWork} size="lg" className="gap-2">
+            <p className="text-muted-foreground mb-4">
+              {canStartWork ? "Ready to start your workday?" : "You must add at least 3 tasks to start your workday."}
+            </p>
+            <Button onClick={handleStartWork} size="lg" className="gap-2" disabled={!canStartWork}>
               <Play className="h-4 w-4" /> Start Work
             </Button>
           </div>
