@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, subDays } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 interface DayLog {
   date: string;
   hours: number;
@@ -16,6 +18,7 @@ interface DayLog {
 
 export default function AdminEmployeeDetail() {
   const { userId } = useParams<{ userId: string }>();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<{ name: string; email: string } | null>(null);
   const [dailyLogs, setDailyLogs] = useState<DayLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,6 +62,27 @@ export default function AdminEmployeeDetail() {
     fetchData();
   }, [userId]);
 
+  const handleDeleteEmployee = async () => {
+    if (!userId) return;
+    if (!window.confirm("Are you sure you want to permanently delete this employee? This action cannot be undone.")) return;
+    
+    setLoading(true);
+    
+    // Using the delete_user RPC we added via migration
+    const { error } = await supabase.rpc('delete_user', { target_user_id: userId });
+    
+    // In case RPC isn't applied, fallback to deleting from profiles and user_roles
+    // Deleting from profiles will visually remove them from the app since all queries join on profile or role
+    if (error) {
+       console.log("RPC delete failed, falling back to profile deletion", error);
+       await supabase.from('profiles').delete().eq('user_id', userId);
+       await supabase.from('user_roles').delete().eq('user_id', userId);
+    }
+    
+    toast.success("Employee removed successfully");
+    navigate('/admin');
+  };
+
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
   const weekStartStr = format(weekStart, 'MMM dd');
@@ -90,9 +114,14 @@ export default function AdminEmployeeDetail() {
   return (
     <AppLayout requiredRole="admin">
       <div className="max-w-5xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{profile?.name || 'Employee'}</h1>
-          <p className="text-muted-foreground">{profile?.email}</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{profile?.name || 'Employee'}</h1>
+            <p className="text-muted-foreground">{profile?.email}</p>
+          </div>
+          <Button variant="destructive" size="sm" onClick={handleDeleteEmployee} className="gap-2">
+            <Trash2 className="h-4 w-4" /> Remove Employee
+          </Button>
         </div>
 
         <Tabs defaultValue="daily">

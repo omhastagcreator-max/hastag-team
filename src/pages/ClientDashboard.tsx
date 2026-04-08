@@ -146,191 +146,69 @@ export default function ClientDashboard() {
   return (
     <AppLayout requiredRole="client">
       <PageTransition>
-        <div className="max-w-6xl mx-auto space-y-8">
-          <div className="flex flex-col gap-1 relative z-10 p-6 bg-gradient-to-r from-background to-muted/20 rounded-2xl border border-border/50 shadow-sm backdrop-blur-sm shadow-blue-500/5">
-            <h1 className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-primary via-blue-500 to-purple-500">Live Client Interface</h1>
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="flex flex-col gap-1 relative z-10 p-6 bg-gradient-to-r from-background to-muted/20 rounded-2xl border border-border/50 shadow-sm backdrop-blur-sm shadow-orange-500/5">
+            <h1 className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-primary via-orange-500 to-red-500">Brand Deliverables</h1>
             {project ? (
-              <p className="text-muted-foreground text-lg uppercase tracking-wide font-semibold mt-2 opacity-80">{project.name} • {project.project_type}</p>
-            ) : <p className="text-muted-foreground">Loading your live dashboard...</p>}
+              <p className="text-muted-foreground text-lg uppercase tracking-wide font-semibold mt-2 opacity-80">{project.name} • Project Feed</p>
+            ) : <p className="text-muted-foreground">Loading your live feed...</p>}
           </div>
 
           {!project && (
-            <div className="grid lg:grid-cols-3 gap-6 animate-pulse">
-              <Skeleton className="h-64 rounded-xl shadow-sm border border-border/20 md:col-span-1" />
-              <Skeleton className="h-64 rounded-xl shadow-sm border border-border/20 lg:col-span-2" />
-              <Skeleton className="h-72 rounded-xl shadow-sm border border-border/20 lg:col-span-2" />
-              <Skeleton className="h-72 rounded-xl shadow-sm border border-border/20 md:col-span-1" />
-            </div>
+             <div className="animate-pulse flex flex-col gap-4">
+                <Skeleton className="h-32 rounded-xl shadow-sm border border-border/20 w-full" />
+                <Skeleton className="h-32 rounded-xl shadow-sm border border-border/20 w-full" />
+             </div>
           )}
 
           {project && (
-            <>
-              <div className="grid lg:grid-cols-3 gap-6">
-                 {/* Website Tech Progress */}
-                 {project.project_type !== 'ads' && (
-                    <MotionCard delay={0.1} className="lg:col-span-1 border-blue-500/20 bg-gradient-to-b from-blue-500/5 to-transparent relative overflow-hidden">
-                       <div className="absolute top-0 right-0 p-4 opacity-10">
-                          <Code2 className="w-24 h-24 text-blue-500" />
-                       </div>
-                       <CardHeader>
-                          <CardTitle className="text-blue-500 flex items-center gap-2"><Code2 className="h-5 w-5"/> Website Build Progress</CardTitle>
-                       </CardHeader>
-                       <CardContent className="space-y-6">
-                           <div>
-                              <div className="flex justify-between items-end mb-2">
-                                <span className="text-3xl font-bold">{Math.round(devProgress)}%</span>
-                                <span className="text-sm font-medium text-muted-foreground">{completedDev} of {totalDev} Tech Tasks Done</span>
-                              </div>
-                              <Progress value={devProgress} className="h-4 bg-muted shadow-inner" />
-                           </div>
-                           
-                           <div className="space-y-2 mt-4 max-h-[140px] overflow-y-auto pr-2">
-                              {devTasks.slice(0, 5).map(t => (
-                                 <div key={t.id} className="flex items-center gap-2 text-sm justify-between">
-                                    <div className="flex items-center gap-2">
-                                      {t.status === 'done' ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <Circle className="h-4 w-4 text-muted-foreground" />}
-                                      <span className={t.status === 'done' ? 'text-muted-foreground line-through' : ''}>{t.title}</span>
-                                    </div>
-                                    <span className="text-xs text-muted-foreground capitalize">{t.status}</span>
-                                 </div>
-                              ))}
-                              {devTasks.length === 0 && <p className="text-sm text-muted-foreground">No development tasks mapped yet.</p>}
-                           </div>
-                       </CardContent>
-                    </MotionCard>
-                 )}
+             <div className="space-y-6">
+                 <div className="text-sm text-muted-foreground mb-2">
+                    Review and mark the latest deliverables and updates pushed by your Agency Lead below.
+                 </div>
+                 
+                 <div className="space-y-4">
+                    {updates.map(u => (
+                      <MotionCard key={u.id} delay={0.1} className="overflow-hidden border border-border/50 shadow-sm relative hover:shadow-md transition-shadow">
+                         {u.requires_approval && u.is_approved === null && (
+                            <div className="absolute top-0 left-0 w-1 h-full bg-orange-500 animate-pulse"></div>
+                         )}
+                         {u.is_approved === true && <div className="absolute top-0 left-0 w-1 h-full bg-green-500"></div>}
+                         {u.is_approved === false && <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>}
 
-                 {/* Project Health Score Widget */}
-                 <MotionCard delay={0.15} className="lg:col-span-1 border-purple-500/20 bg-gradient-to-b from-purple-500/5 to-transparent relative overflow-hidden flex flex-col justify-center items-center py-6">
-                    <CardHeader className="text-center pb-2">
-                       <CardTitle className="text-purple-500 text-lg flex items-center gap-2"><Target className="h-5 w-5"/> Project Health</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-col items-center justify-center pt-2">
-                       <div className="relative flex items-center justify-center w-32 h-32">
-                          <svg className="w-full h-full transform -rotate-90">
-                             <circle cx="64" cy="64" r="56" className="stroke-muted fill-none" strokeWidth="12" />
-                             <circle cx="64" cy="64" r="56" className={`${healthScore > 80 ? 'stroke-green-500' : healthScore > 50 ? 'stroke-yellow-500' : 'stroke-red-500'} fill-none transition-all duration-1000 ease-out`} strokeWidth="12" strokeDasharray="351.86" strokeDashoffset={351.86 - (351.86 * healthScore) / 100} strokeLinecap="round" />
-                          </svg>
-                          <div className="absolute flex items-center justify-center flex-col">
-                             <span className="text-3xl font-black">{healthScore}</span>
-                             <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">/ 100</span>
-                          </div>
-                       </div>
-                       <p className="text-sm text-center text-muted-foreground mt-4 px-4 leading-tight">
-                         {healthScore > 80 ? 'Exceptional pacing against timeline and targets.' : healthScore > 50 ? 'Pacing steadily, some goals demand attention.' : 'Critical attention needed to meet objectives.'}
-                       </p>
-                    </CardContent>
-                 </MotionCard>
-
-                 {/* Marketing Performance Overview */}
-                 {project.project_type !== 'website' && (
-                    <MotionCard delay={0.2} className={`${project.project_type === 'combined' ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
-                       <CardHeader className="pb-2">
-                          <CardTitle className="text-primary flex items-center gap-2"><Megaphone className="h-5 w-5"/> Ads KPI Monitor</CardTitle>
-                       </CardHeader>
-                       <CardContent>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
-                            {kpiData.map((kpi, i) => (
-                              <div key={kpi.name} className="p-4 rounded-xl border border-border/50 bg-background/40 hover:bg-muted/30 transition-colors relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-10 transition-opacity">
-                                    <Activity className="h-12 w-12" />
-                                </div>
-                                <div className="flex justify-between items-start mb-2">
-                                  <p className="text-xs font-semibold text-muted-foreground uppercase">{kpi.name}</p>
-                                  {kpi.status === 'good' && <TrendingUp className="text-green-500 h-4 w-4" />}
-                                  {kpi.status === 'bad' && <TrendingDown className="text-red-500 h-4 w-4" />}
-                                  {kpi.status === 'stable' && <Minus className="text-yellow-500 h-4 w-4" />}
-                                </div>
-                                <div className="text-2xl font-black">{kpi.current.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})}</div>
-                                <div className={`text-[10px] mt-1 font-medium ${kpi.status === 'good' ? 'text-green-500' : kpi.status === 'bad' ? 'text-red-500' : 'text-yellow-500'}`}>
-                                  {kpi.changeProc > 0 ? '+' : ''}{kpi.changeProc.toFixed(1)}% vs 3d avg
-                                </div>
-                              </div>
-                            ))}
-                            {kpiData.length === 0 && <p className="text-sm text-muted-foreground col-span-full">No active campaign metrics detected.</p>}
-                          </div>
-                       </CardContent>
-                    </MotionCard>
-                 )}
-              </div>
-
-              <div className="grid lg:grid-cols-3 gap-6">
-                <MotionCard delay={0.4} className="lg:col-span-2 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2 text-primary opacity-90"><Activity className="h-5 w-5"/> Trend Analysis (30 Days)</CardTitle>
-                  </CardHeader>
-                  <CardContent className="h-[300px]">
-                    {chartData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData}>
-                          <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                          <XAxis dataKey="date" tick={{fontSize: 10}} opacity={0.5} />
-                          <YAxis tick={{fontSize: 10}} opacity={0.5} />
-                          <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.85)', color: '#fff', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.5)' }} />
-                          {kpiData.map((k, idx) => (
-                             <Line key={k.name} type="monotone" dataKey={k.name} stroke={`hsl(${(idx * 60) % 360}, 70%, 50%)`} strokeWidth={3} dot={{r: 2, fill: `hsl(${(idx * 60) % 360}, 70%, 50%)`}} activeDot={{r: 6}} />
-                          ))}
-                        </LineChart>
-                      </ResponsiveContainer>
-                    ) : <p className="text-muted-foreground text-sm flex h-full items-center justify-center border border-dashed rounded-lg">Awaiting data aggregation...</p>}
-                  </CardContent>
-                </MotionCard>
-
-                <div className="space-y-6">
-                   <MotionCard delay={0.5} className="shadow-sm">
-                     <CardHeader>
-                       <CardTitle className="text-lg flex items-center gap-2"><Target className="h-5 w-5 text-purple-500"/> Campaign Goals</CardTitle>
-                     </CardHeader>
-                     <CardContent className="space-y-5">
-                       {goals.length > 0 ? goals.map(g => (
-                         <div key={g.id} className="space-y-1.5">
-                           <div className="flex justify-between text-sm">
-                             <span className="font-semibold">{g.title}</span>
-                             <span className="text-xs text-muted-foreground">{g.current_value} / {g.target_value}</span>
-                           </div>
-                           <Progress value={Math.min(100, (g.current_value / g.target_value) * 100)} className="h-2.5 shadow-inner" />
-                         </div>
-                       )) : <p className="text-muted-foreground text-sm border border-dashed rounded-lg p-4 text-center">No strategic goals defined.</p>}
-                     </CardContent>
-                   </MotionCard>
-                   
-                   <MotionCard delay={0.6} className="shadow-sm">
-                     <CardHeader>
-                       <CardTitle className="text-lg flex items-center gap-2"><MessageSquare className="h-5 w-5 text-orange-500"/> Project Updates</CardTitle>
-                     </CardHeader>
-                     <CardContent className="space-y-4">
-                        <div className="space-y-3 max-h-80 overflow-auto">
-                           {updates.map(u => (
-                             <div key={u.id} className="p-4 border border-border/50 rounded-lg bg-muted/10 relative hover:bg-muted/20 transition-colors">
-                                {u.requires_approval && u.is_approved === null && (
-                                   <div className="absolute top-0 right-0 h-2 w-2 bg-orange-500 rounded-full animate-pulse -mt-1 -mr-1"></div>
-                                )}
-                                <div className="flex justify-between items-start">
-                                  <p className="text-sm font-medium flex-1">{u.content}</p>
-                                  {u.requires_approval && u.is_approved !== null && (
-                                     <span className={`text-xs ml-3 px-2 py-1 rounded-md font-semibold ${u.is_approved ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
-                                       {u.is_approved ? 'Approved' : 'Rejected'}
-                                     </span>
-                                  )}
-                                </div>
-                                
-                                {u.requires_approval && u.is_approved === null && (
-                                   <div className="mt-3 flex gap-2">
-                                     <button onClick={() => handleApproval(u.id, true)} className="flex-1 bg-green-500/10 hover:bg-green-500/20 text-green-500 text-xs py-1.5 rounded-md font-semibold transition-colors">👍 Approve</button>
-                                     <button onClick={() => handleApproval(u.id, false)} className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-500 text-xs py-1.5 rounded-md font-semibold transition-colors">👎 Reject</button>
-                                   </div>
-                                )}
-                                
-                                <p className="text-[11px] text-muted-foreground mt-3">From {u.profiles?.name || 'System'} • {new Date(u.created_at).toLocaleString()}</p>
+                         <CardContent className="p-6">
+                             <div className="flex justify-between items-start">
+                               <p className="text-base font-medium flex-1 text-foreground/90">{u.content}</p>
+                               {u.requires_approval && u.is_approved !== null && (
+                                  <span className={`text-xs ml-4 px-3 py-1.5 rounded-md font-bold uppercase tracking-wider ${u.is_approved ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                                    {u.is_approved ? 'Approved' : 'Rejected'}
+                                  </span>
+                               )}
                              </div>
-                           ))}
-                           {updates.length === 0 && <p className="text-sm text-center py-4 text-muted-foreground">No updates posted yet.</p>}
-                        </div>
-                     </CardContent>
-                   </MotionCard>
-                </div>
-              </div>
-            </>
+                             
+                             {u.requires_approval && u.is_approved === null && (
+                                <div className="mt-6 flex gap-3 max-w-sm">
+                                  <button onClick={() => handleApproval(u.id, true)} className="flex-1 bg-green-500 border border-green-600 hover:bg-green-600 text-white text-sm py-2 rounded-md font-semibold transition-colors shadow-sm">👍 Approve</button>
+                                  <button onClick={() => handleApproval(u.id, false)} className="flex-1 bg-red-500 border border-red-600 hover:bg-red-600 text-white text-sm py-2 rounded-md font-semibold transition-colors shadow-sm">👎 Reject</button>
+                                </div>
+                             )}
+                             
+                             <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border/30">
+                                <MessageSquare className="h-4 w-4 text-orange-500" />
+                                <span className="text-xs text-muted-foreground font-medium">From {u.profiles?.name || 'System'}</span>
+                                <span className="text-muted-foreground/30">•</span>
+                                <span className="text-xs text-muted-foreground">{new Date(u.created_at).toLocaleString()}</span>
+                             </div>
+                         </CardContent>
+                      </MotionCard>
+                    ))}
+                    {updates.length === 0 && (
+                       <div className="text-center py-12 border border-dashed rounded-xl border-border/50 text-muted-foreground">
+                         No updates have been pushed to your feed yet.
+                       </div>
+                    )}
+                 </div>
+             </div>
           )}
         </div>
       </PageTransition>
