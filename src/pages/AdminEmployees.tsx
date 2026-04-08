@@ -88,6 +88,7 @@ export default function AdminEmployees() {
                               <SelectItem value="employee">Employee</SelectItem>
                               <SelectItem value="admin">Admin (Master)</SelectItem>
                               <SelectItem value="client">Client</SelectItem>
+                              <SelectItem value="sales">Sales Team</SelectItem>
                             </SelectContent>
                           </Select>
                        </div>
