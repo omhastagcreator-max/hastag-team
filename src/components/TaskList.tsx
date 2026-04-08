@@ -108,9 +108,9 @@ export function TaskList() {
                         <span className={`font-medium text-sm ${task.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                           {task.title}
                         </span>
-                        {tasks.filter(t => t.title.toLowerCase().trim() === task.title.toLowerCase().trim()).length > 1 && (
+                        {tasks.filter(t => t.title?.toLowerCase().trim() === task.title?.toLowerCase().trim()).length > 1 && (
                           <Badge variant="outline" className="text-xs bg-orange-500/10 text-orange-500 border-orange-500/20">
-                            Repeat: {tasks.filter(t => t.title.toLowerCase().trim() === task.title.toLowerCase().trim()).length}
+                            Repeat: {tasks.filter(t => t.title?.toLowerCase().trim() === task.title?.toLowerCase().trim()).length}
                           </Badge>
                         )}
                         {task.category && (
