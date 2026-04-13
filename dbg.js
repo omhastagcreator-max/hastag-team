@@ -1,32 +1,14 @@
-import pg from 'pg';
-const { Client } = pg;
+import puppeteer from 'puppeteer';
 
-const client = new Client({
-  connectionString: 'postgresql://postgres.piszlmybngkliypiietv:9450213277Om%40@aws-1-ap-south-1.pooler.supabase.com:6543/postgres'
-});
-
-async function main() {
-  console.log('Connecting to Supabase using IPv4 Pooler...');
-  await client.connect();
-  console.log('✅ Connected to Database successfully!');
-
-  console.log('Dropping the corrupted trigger...');
-  try {
-      await client.query(`DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;`);
-      console.log('✅ Trigger DROPPED directly from database.');
-  } catch(err) {
-     console.error('❌ Trigger drop error:', err.message);
-  }
-
-  // To be safe, test an isolated auth user query
-  try {
-     const { rows } = await client.query(`SELECT count(*) FROM auth.users`);
-     console.log(`✅ System check: ${rows[0].count} users currently in auth.users`);
-  } catch(err) {
-     console.error('❌ Auth select error:', err.message);
-  }
-
-  await client.end();
-}
-
-main().catch(console.error);
+(async () => {
+  const browser = await puppeteer.launch({ headless: 'new' });
+  const page = await browser.newPage();
+  
+  page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
+  page.on('pageerror', err => console.log('BROWSER ERROR:', err.message));
+  
+  console.log('Navigating to local vite preview...');
+  await page.goto('http://localhost:8080', { waitUntil: 'networkidle0' });
+  
+  await browser.close();
+})();
