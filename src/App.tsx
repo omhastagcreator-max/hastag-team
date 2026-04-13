@@ -63,7 +63,7 @@ const LazyRoute = ({ element: Component, roles }: { element: React.ElementType, 
 const AnimatedRoutes = () => {
   const location = useLocation();
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
         {/* Public */}
         <Route path="/" element={<Landing />} />
