@@ -46,145 +46,59 @@ const RouteFallback = () => (
   </div>
 );
 
+const LazyRoute = ({ element: Component, roles }: { element: React.ElementType, roles?: ("admin" | "employee" | "client" | "sales")[] }) => (
+  <Suspense fallback={<RouteFallback />}>
+    {roles ? (
+      <ProtectedRoute allow={roles}>
+        <Component />
+      </ProtectedRoute>
+    ) : (
+      <ProtectedRoute>
+        <Component />
+      </ProtectedRoute>
+    )}
+  </Suspense>
+);
+
 const AnimatedRoutes = () => {
   const location = useLocation();
   return (
-    <Suspense fallback={<RouteFallback />}>
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          {/* Public */}
-          <Route path="/" element={<Landing />} />
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        {/* Public */}
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/update-password" element={<UpdatePassword />} />
 
-        {/* Employee — spec path: /dashboard (with /employee/dashboard alias) */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute allow={["employee"]}>
-              <EmployeeDashboard />
-            </ProtectedRoute>
-          }
-        />
+        {/* Employee */}
+        <Route path="/dashboard" element={<LazyRoute element={EmployeeDashboard} roles={["employee"]} />} />
         <Route path="/employee/dashboard" element={<Navigate to="/dashboard" replace />} />
-        <Route
-          path="/dashboard/projects/:projectId"
-          element={
-            <ProtectedRoute allow={["employee", "admin"]}>
-              <ProjectDetailsLead />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/employee/dashboard/projects/:projectId"
-          element={
-            <ProtectedRoute allow={["employee", "admin"]}>
-              <ProjectDetailsLead />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/tasks"
-          element={
-            <ProtectedRoute allow={["employee", "admin"]}>
-              <TasksPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/workroom"
-          element={
-            <ProtectedRoute>
-              <WorkRoom />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/dashboard/projects/:projectId" element={<LazyRoute element={ProjectDetailsLead} roles={["employee", "admin"]} />} />
+        <Route path="/employee/dashboard/projects/:projectId" element={<LazyRoute element={ProjectDetailsLead} roles={["employee", "admin"]} />} />
+        <Route path="/tasks" element={<LazyRoute element={TasksPage} roles={["employee", "admin"]} />} />
+        <Route path="/workroom" element={<LazyRoute element={WorkRoom} />} />
 
-        {/* Admin — spec path: /admin (with /admin/dashboard alias) */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute allow={["admin"]}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
+        {/* Admin */}
+        <Route path="/admin" element={<LazyRoute element={AdminDashboard} roles={["admin"]} />} />
         <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
-        <Route
-          path="/admin/employees"
-          element={
-            <ProtectedRoute allow={["admin"]}>
-              <AdminEmployees />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/employees/:userId"
-          element={
-            <ProtectedRoute allow={["admin"]}>
-              <AdminEmployeeDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/clients"
-          element={
-            <ProtectedRoute allow={["admin"]}>
-              <AdminClients />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/clients/:clientId"
-          element={
-            <ProtectedRoute allow={["admin"]}>
-              <AdminClientDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/reports"
-          element={
-            <ProtectedRoute allow={["admin"]}>
-              <AdminReports />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/projects"
-          element={
-            <ProtectedRoute allow={["admin"]}>
-              <AdminProjects />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/admin/employees" element={<LazyRoute element={AdminEmployees} roles={["admin"]} />} />
+        <Route path="/admin/employees/:userId" element={<LazyRoute element={AdminEmployeeDetail} roles={["admin"]} />} />
+        <Route path="/admin/clients" element={<LazyRoute element={AdminClients} roles={["admin"]} />} />
+        <Route path="/admin/clients/:clientId" element={<LazyRoute element={AdminClientDetail} roles={["admin"]} />} />
+        <Route path="/admin/reports" element={<LazyRoute element={AdminReports} roles={["admin"]} />} />
+        <Route path="/admin/projects" element={<LazyRoute element={AdminProjects} roles={["admin"]} />} />
 
-        {/* Client — spec path: /client (with /client/dashboard alias) */}
-        <Route
-          path="/client"
-          element={
-            <ProtectedRoute allow={["client"]}>
-              <ClientDashboard />
-            </ProtectedRoute>
-          }
-        />
+        {/* Client */}
+        <Route path="/client" element={<LazyRoute element={ClientDashboard} roles={["client"]} />} />
         <Route path="/client/dashboard" element={<Navigate to="/client" replace />} />
 
-        {/* Sales — spec path: /sales (with /sales/dashboard alias) */}
-        <Route
-          path="/sales"
-          element={
-            <ProtectedRoute allow={["sales"]}>
-              <SalesDashboard />
-            </ProtectedRoute>
-          }
-        />
+        {/* Sales */}
+        <Route path="/sales" element={<LazyRoute element={SalesDashboard} roles={["sales"]} />} />
         <Route path="/sales/dashboard" element={<Navigate to="/sales" replace />} />
 
         <Route path="*" element={<NotFound />} />
-        </Routes>
-      </AnimatePresence>
-    </Suspense>
+      </Routes>
+    </AnimatePresence>
   );
 };
 
