@@ -46,6 +46,7 @@ export default function AdminProjects() {
   const [name, setName] = useState('');
   const [type, setType] = useState('combined');
   const [clientId, setClientId] = useState('');
+  const [leadId, setLeadId] = useState('');
   const [dealId, setDealId] = useState('');
   const [projectTeamId, setProjectTeamId] = useState('');
 
