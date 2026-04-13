@@ -28,10 +28,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchUserData = async (userId: string) => {
     const [roleRes, profileRes] = await Promise.all([
       supabase.from('user_roles').select('role').eq('user_id', userId).single(),
-      supabase.from('profiles').select('name, email, team').eq('user_id', userId).single(),
+      supabase.from('profiles').select('name, email, team, organization_id').eq('user_id', userId).single(),
     ]);
     if (roleRes.data) setRole(roleRes.data.role as AppRole);
     if (profileRes.data) setProfile(profileRes.data);
+    return profileRes.data;
   };
 
   useEffect(() => {
@@ -40,7 +41,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          await fetchUserData(session.user.id);
+          const profileData = await fetchUserData(session.user.id);
+          if (_event === 'SIGNED_IN' && profileData?.organization_id) {
+            await supabase.from('activity_logs').insert({
+              user_id: session.user.id,
+              action: 'login',
+              organization_id: profileData.organization_id,
+            });
+          }
         } else {
           setRole(null);
           setProfile(null);

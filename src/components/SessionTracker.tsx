@@ -42,11 +42,11 @@ export function SessionTracker() {
   const workingMs = elapsed - totalBreakMs;
 
   const todayTasks = tasks.filter(t => new Date(t.created_at).toDateString() === new Date().toDateString());
-  const canStartWork = todayTasks.length >= 3;
+  const canStartWork = todayTasks.length >= 1;
 
   const handleStartWork = () => {
-    if (todayTasks.length < 3) {
-      toast.error('You must add at least 3 tasks for today before starting work.');
+    if (todayTasks.length < 1) {
+      toast.error('You must add at least 1 task for today before starting work.');
       return;
     }
     startWork();
@@ -64,7 +64,7 @@ export function SessionTracker() {
         {!activeSession ? (
           <div className="text-center py-6">
             <p className="text-muted-foreground mb-4">
-              {canStartWork ? "Ready to start your workday?" : "You must add at least 3 tasks to start your workday."}
+              {canStartWork ? "Ready to start your workday?" : "You must add at least 1 task to start your workday."}
             </p>
             <Button onClick={handleStartWork} size="lg" className="gap-2" disabled={!canStartWork}>
               <Play className="h-4 w-4" /> Start Work

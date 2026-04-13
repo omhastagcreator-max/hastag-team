@@ -14,6 +14,7 @@ interface DayLog {
   date: string;
   hours: number;
   tasks: number;
+  breaks: number;
 }
 
 export default function AdminEmployeeDetail() {
@@ -33,7 +34,7 @@ export default function AdminEmployeeDetail() {
       const [profileRes, sessionsRes, tasksRes] = await Promise.all([
         supabase.from('profiles').select('name, email').eq('user_id', userId).single(),
         supabase.from('sessions').select('*').eq('user_id', userId).gte('start_time', monthStart.toISOString()).lte('start_time', monthEnd.toISOString()),
-        supabase.from('tasks').select('*').eq('user_id', userId).gte('created_at', monthStart.toISOString()).lte('created_at', monthEnd.toISOString()),
+        supabase.from('project_tasks').select('id, status, created_at, assigned_to').eq('assigned_to', userId).gte('created_at', monthStart.toISOString()).lte('created_at', monthEnd.toISOString()),
       ]);
 
       setProfile(profileRes.data);
@@ -45,14 +46,21 @@ export default function AdminEmployeeDetail() {
           (s) => format(new Date(s.start_time), 'yyyy-MM-dd') === dayStr
         );
         let totalMin = 0;
+        let totalBreaks = 0;
         daySessions.forEach((s) => {
           const end = s.end_time ? new Date(s.end_time).getTime() : Date.now();
           totalMin += (end - new Date(s.start_time).getTime()) / 60000 - (s.break_time || 0);
+          totalBreaks += s.break_time || 0;
         });
         const dayTasks = (tasksRes.data || []).filter(
           (t) => format(new Date(t.created_at), 'yyyy-MM-dd') === dayStr
         );
-        return { date: format(day, 'MMM dd'), hours: Math.max(0, +(totalMin / 60).toFixed(1)), tasks: dayTasks.length };
+        return { 
+          date: format(day, 'MMM dd'), 
+          hours: Math.max(0, +(totalMin / 60).toFixed(1)), 
+          tasks: dayTasks.length,
+          breaks: Math.round(totalBreaks)
+        };
       });
 
       setDailyLogs(logs);
@@ -98,8 +106,11 @@ export default function AdminEmployeeDetail() {
 
   const totalWeekHours = last7.reduce((s, l) => s + l.hours, 0);
   const totalWeekTasks = last7.reduce((s, l) => s + l.tasks, 0);
+  const totalWeekBreaks = last7.reduce((s, l) => s + l.breaks, 0);
+  
   const totalMonthHours = dailyLogs.reduce((s, l) => s + l.hours, 0);
   const totalMonthTasks = dailyLogs.reduce((s, l) => s + l.tasks, 0);
+  const totalMonthBreaks = dailyLogs.reduce((s, l) => s + l.breaks, 0);
 
   if (loading) {
     return (
@@ -138,6 +149,7 @@ export default function AdminEmployeeDetail() {
                   <span className="font-medium text-foreground">{log.date}</span>
                   <div className="flex gap-4">
                     <span className="text-sm text-muted-foreground">{log.hours}h</span>
+                    <span className="text-sm text-orange-500/80">{log.breaks}m break</span>
                     <Badge variant="secondary">{log.tasks} tasks</Badge>
                   </div>
                 </div>
@@ -146,11 +158,17 @@ export default function AdminEmployeeDetail() {
           </TabsContent>
 
           <TabsContent value="weekly" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <Card>
                 <CardContent className="p-4 text-center">
                   <p className="text-2xl font-bold text-foreground">{totalWeekHours.toFixed(1)}h</p>
                   <p className="text-xs text-muted-foreground">Weekly Hours</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-orange-500">{Math.round(totalWeekBreaks / 60)}h {totalWeekBreaks % 60}m</p>
+                  <p className="text-xs text-muted-foreground">Weekly Breaks</p>
                 </CardContent>
               </Card>
               <Card>
@@ -177,11 +195,17 @@ export default function AdminEmployeeDetail() {
           </TabsContent>
 
           <TabsContent value="monthly" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <Card>
                 <CardContent className="p-4 text-center">
                   <p className="text-2xl font-bold text-foreground">{totalMonthHours.toFixed(1)}h</p>
                   <p className="text-xs text-muted-foreground">Monthly Hours</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-orange-500">{Math.round(totalMonthBreaks / 60)}h {totalMonthBreaks % 60}m</p>
+                  <p className="text-xs text-muted-foreground">Monthly Breaks</p>
                 </CardContent>
               </Card>
               <Card>

@@ -22,6 +22,7 @@ async function seed() {
       { email: 'admin@hastag.com', password: 'password123', name: 'System Admin', team: 'admin', rawRole: 'admin' },
       { email: 'sakshi@hastag.com', password: 'password123', name: 'Sakshi', team: 'marketing', rawRole: 'employee' },
       { email: 'om@hastag.com', password: 'password123', name: 'Om', team: 'web_dev', rawRole: 'employee' },
+      { email: 'sales@hastag.com', password: 'password123', name: 'Sales Team', team: 'sales', rawRole: 'sales' },
       { email: 'vellor@hastag.com', password: 'password123', name: 'Vellor Living', rawRole: 'client' },
       { email: 'oudfy@hastag.com', password: 'password123', name: 'Oudfy Perfumes', rawRole: 'client' },
       { email: 'pamya@hastag.com', password: 'password123', name: 'Pamya Jewels', rawRole: 'client' }
@@ -83,7 +84,7 @@ async function seed() {
     const { data: deals, error: dealError } = await supabase.from('deals').upsert([
         { id: 'd1000000-0000-0000-0000-000000000000', service_type: 'Meta Ads', deal_value: 5000, status: 'won' },
         { id: 'd2000000-0000-0000-0000-000000000000', service_type: 'Website', deal_value: 3500, status: 'won' },
-        { id: 'd3000000-0000-0000-0000-000000000000', service_type: 'Combined', deal_value: 8000, status: 'won' },
+        { id: 'vellor', service_type: 'Combined', deal_value: 8000, status: 'won' },
     ]).select();
     if(dealError) console.log("Deal Err:", dealError);
 
@@ -101,7 +102,7 @@ async function seed() {
     ]);
     if(taskError) console.log("Task Err:", taskError);
 
-    console.log('✅ Seed Complete!');
+    console.log('✅ data seeding complete!');
   } catch (err) {
     console.error('Fatal Error during seed:', err);
   }

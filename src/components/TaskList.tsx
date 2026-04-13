@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Check, Pencil, Trash2, ListTodo } from 'lucide-react';
 import { useTasks, Task } from '@/hooks/useTasks';
+import { TaskCard } from '@/components/TaskCard';
 
 const categories = ['SEO', 'Ads', 'Design', 'Dev', 'Other'];
 
@@ -90,51 +91,40 @@ export function TaskList() {
           </div>
         )}
         {tasks.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">No tasks yet today. Start adding!</p>
+          <p className="text-sm text-muted-foreground text-center py-4">No tasks yet today.</p>
         ) : (
           <div className="space-y-2">
             {tasks.map((task) => (
-              <div key={task.id} className="p-3 border rounded-lg hover:bg-muted/30 transition-colors">
-                {editingId === task.id ? (
+              editingId === task.id ? (
+                <div key={task.id} className="p-3 border rounded-md bg-muted/30">
                   <TaskForm
                     initial={task}
                     onSubmit={(t) => { updateTask(task.id, t); setEditingId(null); }}
                     onCancel={() => setEditingId(null)}
                   />
-                ) : (
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className={`font-medium text-sm ${task.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                          {task.title}
-                        </span>
-                        {tasks.filter(t => t.title?.toLowerCase().trim() === task.title?.toLowerCase().trim()).length > 1 && (
-                          <Badge variant="outline" className="text-xs bg-orange-500/10 text-orange-500 border-orange-500/20">
-                            Repeat: {tasks.filter(t => t.title?.toLowerCase().trim() === task.title?.toLowerCase().trim()).length}
-                          </Badge>
-                        )}
-                        {task.category && (
-                          <Badge variant="outline" className="text-xs">{task.category}</Badge>
-                        )}
-                        <Badge variant={task.status === 'done' ? 'default' : 'secondary'} className="text-xs">
-                          {task.status}
-                        </Badge>
-                      </div>
-                      {task.time_spent && (
-                        <span className="text-xs text-muted-foreground">{task.time_spent} min</span>
-                      )}
-                    </div>
-                    <div className="flex gap-1">
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingId(task.id)}>
-                        <Pencil className="h-3 w-3" />
-                      </Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteTask(task.id)}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
+                </div>
+              ) : (
+                <div key={task.id} className="flex items-center gap-1">
+                  <div className="flex-1">
+                    <TaskCard
+                      task={{
+                        id: task.id,
+                        title: task.title,
+                        status: task.status as 'pending' | 'ongoing' | 'done',
+                        project_name: task.category || undefined,
+                      }}
+                      onToggle={(next) => updateTask(task.id, { status: next })}
+                      compact
+                    />
                   </div>
-                )}
-              </div>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingId(task.id)}>
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteTask(task.id)}>
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              )
             ))}
           </div>
         )}

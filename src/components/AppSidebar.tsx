@@ -1,4 +1,4 @@
-import { LayoutDashboard, ListTodo, Video, Users, BarChart3, LogOut, Briefcase, TrendingUp, Target, Handshake } from 'lucide-react';
+import { LayoutDashboard, ListTodo, Video, Users, BarChart3, LogOut, Briefcase, TrendingUp, Target, Handshake, Building2 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -16,24 +16,28 @@ import {
 import { Button } from '@/components/ui/button';
 
 const employeeItems = [
-  { title: 'Dashboard', url: '/employee/dashboard', icon: LayoutDashboard },
+  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
   { title: 'My Tasks', url: '/tasks', icon: ListTodo },
   { title: 'Work Room', url: '/workroom', icon: Video },
 ];
 
 const adminItems = [
-  { title: 'Overview', url: '/admin/dashboard', icon: LayoutDashboard },
+  { title: 'Overview', url: '/admin', icon: LayoutDashboard },
   { title: 'Projects', url: '/admin/projects', icon: Briefcase },
+  { title: 'Clients', url: '/admin/clients', icon: Building2 },
   { title: 'Employees', url: '/admin/employees', icon: Users },
   { title: 'Reports', url: '/admin/reports', icon: BarChart3 },
+  { title: 'Work Room', url: '/workroom', icon: Video },
 ];
 
 const clientItems = [
-  { title: 'My Reports', url: '/client/dashboard', icon: TrendingUp },
+  { title: 'My Reports', url: '/client', icon: TrendingUp },
+  { title: 'Work Room', url: '/workroom', icon: Video },
 ];
 
 const salesItems = [
   { title: 'Sales Dashboard', url: '/sales', icon: LayoutDashboard },
+  { title: 'Work Room', url: '/workroom', icon: Video },
 ];
 
 export function AppSidebar() {
@@ -58,7 +62,7 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      end={item.url === '/admin/dashboard' || item.url === '/employee/dashboard'}
+                      end={item.url === '/admin' || item.url === '/dashboard'}
                       className="hover:bg-sidebar-accent/50"
                       activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
                     >

@@ -19,7 +19,7 @@ export function TodaySummary() {
     const fetchSummary = async () => {
       const [sessionsRes, tasksRes] = await Promise.all([
         supabase.from('sessions').select('start_time, end_time, break_time').eq('user_id', user.id).gte('start_time', todayIso),
-        supabase.from('tasks').select('status').eq('user_id', user.id).gte('created_at', todayIso),
+        supabase.from('project_tasks').select('status').eq('assigned_to', user.id).gte('created_at', todayIso),
       ]);
 
       let totalMinutes = 0;
@@ -32,7 +32,7 @@ export function TodaySummary() {
 
       const allTasks = tasksRes.data || [];
       setTaskCount(allTasks.length);
-      setDoneTasks(allTasks.filter((t) => t.status === 'Done').length);
+      setDoneTasks(allTasks.filter((t) => t.status === 'done').length);
     };
 
     fetchSummary();

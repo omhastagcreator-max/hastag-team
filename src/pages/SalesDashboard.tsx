@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Target, Handshake, Users, DollarSign, PlusCircle, ArrowRightCircle, MessageSquare, Video } from 'lucide-react';
+import { Target, Handshake, Users, IndianRupee, PlusCircle, ArrowRightCircle, MessageSquare, Video } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -96,17 +96,30 @@ export default function SalesDashboard() {
     e.preventDefault();
     if (!convertingLeadId || !dealValue) return;
 
+    const lead = leads.find(l => l.id === convertingLeadId);
+
     await supabase.from('deals').insert({
       lead_id: convertingLeadId,
       deal_value: Number(dealValue),
-      service_type: serviceType
+      service_type: serviceType,
+      status: 'won'
     });
 
-    await supabase.from('leads').update({ status: 'converted' }).eq('id', convertingLeadId);
+    // Auto-create a project from won deal (spec §3 sales → handoff to delivery)
+    if (lead) {
+      const projectType = serviceType === 'website' ? 'web_dev' : serviceType === 'ads' ? 'marketing' : 'combined';
+      await supabase.from('projects').insert({
+        name: `${lead.name} – ${serviceType}`,
+        project_type: projectType,
+        status: 'active'
+      } as any);
+    }
+
+    await supabase.from('leads').update({ status: 'won' }).eq('id', convertingLeadId);
 
     setConvertingLeadId(null);
     setDealValue('');
-    toast.success('Deal officially WON! 🎉');
+    toast.success('Deal WON! Project created 🎉');
     fetchData();
   };
 
@@ -140,67 +153,56 @@ export default function SalesDashboard() {
     return { revenue, wonDeals, openDeals };
   }, [deals]);
 
-  const stages = ['new', 'contacted', 'qualified'];
+  const stages = ['new', 'contacted', 'qualified', 'won', 'lost'];
 
   return (
     <AppLayout requiredRole="sales">
       <PageTransition>
         <div className="max-w-7xl mx-auto space-y-8">
           <div className="flex items-center justify-between mb-4">
-             <div className="flex items-center gap-2">
-               <Target className="h-8 w-8 text-primary animate-pulse" />
-               <h1 className="text-4xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-accent drop-shadow-sm">Sales CRM</h1>
+             <div className="flex items-center gap-3">
+               <Target className="h-7 w-7 text-primary" />
+               <div>
+                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Sales</h1>
+                 <p className="text-xs text-muted-foreground">Close deals fast.</p>
+               </div>
              </div>
-             <Button onClick={() => navigate('/workroom')} variant="outline" className="gap-2 border-primary/20 text-primary hover:bg-primary/10">
-               <Video className="h-4 w-4" /> Start Demo WorkRoom
+             <Button onClick={() => navigate('/workroom')} variant="outline" size="sm" className="gap-2">
+               <Video className="h-4 w-4" /> WorkRoom
              </Button>
           </div>
 
-          {/* Revenue Top Banner */}
-          <div className="grid md:grid-cols-3 gap-6">
-            <MotionCard delay={0.1} className="bg-gradient-to-br from-green-500/20 to-emerald-500/5 border-green-500/20">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Total Pipeline Rev</p>
-                    <h2 className="text-3xl font-extrabold flex items-center">
-                      <DollarSign className="h-6 w-6 text-emerald-500 -ml-1" />
-                      {stats.revenue.toLocaleString()}
-                    </h2>
-                  </div>
-                </div>
+          {/* Top metrics */}
+          <div className="grid grid-cols-3 gap-3">
+            <MotionCard className="border border-border">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Pipeline Rev</p>
+                <h2 className="text-2xl font-bold mt-1 flex items-center">
+                  <IndianRupee className="h-5 w-5 text-green-500 -ml-1" />
+                  {stats.revenue.toLocaleString()}
+                </h2>
               </CardContent>
             </MotionCard>
-            
-            <MotionCard delay={0.2} className="bg-gradient-to-br from-blue-500/20 to-cyan-500/5 border-blue-500/20">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Open Deals</p>
-                    <h2 className="text-3xl font-extrabold text-blue-500">{stats.openDeals}</h2>
-                  </div>
-                </div>
+            <MotionCard className="border border-border">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Open Deals</p>
+                <h2 className="text-2xl font-bold mt-1">{stats.openDeals}</h2>
               </CardContent>
             </MotionCard>
-
-            <MotionCard delay={0.3} className="bg-gradient-to-br from-purple-500/20 to-fuchsia-500/5 border-purple-500/20">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Active Leads</p>
-                    <h2 className="text-3xl font-extrabold text-purple-500">
-                      {leads.filter(l => l.status !== 'converted' && l.status !== 'lost').length}
-                    </h2>
-                  </div>
-                </div>
+            <MotionCard className="border border-border">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Active Leads</p>
+                <h2 className="text-2xl font-bold mt-1">
+                  {leads.filter(l => l.status !== 'won' && l.status !== 'lost').length}
+                </h2>
               </CardContent>
             </MotionCard>
           </div>
 
-          <div className="grid lg:grid-cols-4 gap-6">
+          <div className="grid lg:grid-cols-4 gap-4">
             {/* Lead Creation Form */}
-            <div className="lg:col-span-1 space-y-6">
-              <MotionCard delay={0.4}>
+            <div className="lg:col-span-1 space-y-4">
+              <MotionCard>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg"><PlusCircle className="text-primary h-5 w-5" /> New Lead</CardTitle>
                 </CardHeader>
@@ -231,9 +233,9 @@ export default function SalesDashboard() {
               </MotionCard>
             </div>
 
-            {/* Kanban Board */}
-            <div className="lg:col-span-3">
-              <div className="grid grid-cols-3 gap-4">
+            {/* Kanban Board — scrolls horizontally on mobile/tablet, fits on lg+ */}
+            <div className="lg:col-span-3 overflow-x-auto">
+              <div className="grid grid-cols-5 gap-3 min-w-[900px]">
                 {stages.map((stage) => {
                   const stageLeads = leads.filter(l => l.status === stage);
                   return (
@@ -251,23 +253,37 @@ export default function SalesDashboard() {
                           >
                             <h4 className="font-bold text-sm">{lead.name}</h4>
                             <p className="text-xs text-muted-foreground truncate mb-3">{lead.contact}</p>
-                            <div className="flex justify-between items-center">
-                              {stage !== 'qualified' ? (
-                                <Button 
-                                  size="sm" 
-                                  variant="secondary" 
+                            <div className="flex justify-between items-center gap-1 flex-wrap">
+                              {stage === 'qualified' ? (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    className="h-6 text-xs px-2 bg-green-500 hover:bg-green-600 text-white"
+                                    onClick={(e) => { e.stopPropagation(); setConvertingLeadId(lead.id); }}
+                                  >
+                                    Won <IndianRupee className="w-3 h-3 ml-1" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-6 text-xs px-2 border-red-500/40 text-red-500 hover:bg-red-500/10"
+                                    onClick={(e) => { e.stopPropagation(); updateLeadStatus(lead.id, 'lost'); }}
+                                  >
+                                    Lost
+                                  </Button>
+                                </>
+                              ) : stage === 'won' || stage === 'lost' ? (
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase ${stage === 'won' ? 'bg-green-500/15 text-green-500' : 'bg-red-500/15 text-red-500'}`}>
+                                  {stage}
+                                </span>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
                                   className="h-6 text-xs px-2"
                                   onClick={(e) => { e.stopPropagation(); updateLeadStatus(lead.id, stages[stages.indexOf(stage) + 1]); }}
                                 >
                                   Advance &rarr;
-                                </Button>
-                              ) : (
-                                <Button 
-                                  size="sm" 
-                                  className="h-6 text-xs px-2 bg-green-500 hover:bg-green-600 text-white"
-                                  onClick={(e) => { e.stopPropagation(); setConvertingLeadId(lead.id); }}
-                                >
-                                  Convert <DollarSign className="w-3 h-3 ml-1" />
                                 </Button>
                               )}
                               {lead.source && <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded">{lead.source}</span>}
@@ -289,7 +305,7 @@ export default function SalesDashboard() {
           <DialogHeader><DialogTitle>Convert to Deal</DialogTitle></DialogHeader>
           <form onSubmit={handleConvert} className="space-y-4 pt-4">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-muted-foreground uppercase">Projected Value ($)</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Projected Value (₹)</label>
               <Input type="number" value={dealValue} onChange={e => setDealValue(e.target.value)} required placeholder="10000" />
             </div>
             <div className="space-y-1">

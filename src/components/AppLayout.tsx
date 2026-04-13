@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { useAuth } from '@/contexts/AuthContext';
+import { dashboardForRole } from '@/components/ProtectedRoute';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -22,19 +23,18 @@ export function AppLayout({ children, requiredRole }: AppLayoutProps) {
 
   if (!user) return <Navigate to="/login" replace />;
   if (requiredRole && role !== requiredRole) {
-    return <Navigate to={role === 'admin' ? '/admin/dashboard' : role === 'client' ? '/client/dashboard' : role === 'sales' ? '/sales/dashboard' : '/employee/dashboard'} replace />;
+    return <Navigate to={dashboardForRole(role)} replace />;
   }
 
   return (
     <SidebarProvider>
-      <div className="fixed inset-0 z-[0] bg-gradient-to-br from-primary/5 via-accent/5 to-purple-500/5 dark:from-primary/10 dark:via-accent/10 dark:to-purple-900/10 animate-gradient-xy pointer-events-none" />
-      <div className="min-h-screen flex w-full bg-transparent relative z-10">
+      <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center border-b border-border/50 glass-panel px-4 sticky top-0 z-20">
+          <header className="h-14 flex items-center border-b border-border bg-background/90 backdrop-blur px-4 sticky top-0 z-20">
             <SidebarTrigger />
           </header>
-          <main className="flex-1 p-6 overflow-auto">
+          <main className="flex-1 p-4 md:p-6 overflow-auto">
             {children}
           </main>
         </div>

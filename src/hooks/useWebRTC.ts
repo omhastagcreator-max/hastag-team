@@ -11,7 +11,7 @@ const ICE_SERVERS = {
 export function useWebRTCSender(userId: string) {
   const [isSharing, setIsSharing] = useState(false);
   const streamRef = useRef<MediaStream | null>(null);
-  const pcRef = useRef<RTCPeerConnection | null>(null);
+  const pcRefs = useRef<Map<string, RTCPeerConnection>>(new Map());
   const channelRef = useRef<any>(null);
 
   const startSharing = async () => {
@@ -39,11 +39,13 @@ export function useWebRTCSender(userId: string) {
       channel.on('broadcast', { event: 'view-request' }, async ({ payload }) => {
         const { adminId } = payload;
         
-        // Clean up any old connection
-        if (pcRef.current) pcRef.current.close();
+        // Clean up any old connection for this specific admin
+        if (pcRefs.current.has(adminId)) {
+          pcRefs.current.get(adminId)?.close();
+        }
         
         const pc = new RTCPeerConnection(ICE_SERVERS);
-        pcRef.current = pc;
+        pcRefs.current.set(adminId, pc);
 
         // Add local stream tracks
         if (streamRef.current) {
@@ -57,7 +59,7 @@ export function useWebRTCSender(userId: string) {
             channel.send({
               type: 'broadcast',
               event: 'ice-candidate',
-              payload: { candidate: event.candidate, target: adminId }
+              payload: { candidate: event.candidate, target: adminId, senderId: userId }
             });
           }
         };
@@ -73,14 +75,16 @@ export function useWebRTCSender(userId: string) {
       });
 
       channel.on('broadcast', { event: 'webrtc-answer' }, async ({ payload }) => {
-        if (!pcRef.current) return;
-        await pcRef.current.setRemoteDescription(new RTCSessionDescription(payload.answer));
+        const pc = pcRefs.current.get(payload.adminId);
+        if (!pc) return;
+        await pc.setRemoteDescription(new RTCSessionDescription(payload.answer));
       });
 
       channel.on('broadcast', { event: 'ice-candidate' }, async ({ payload }) => {
-        // Ensure we only process candidates aimed at us (if target is omitted or matches, though here targets are adminId vs userId)
-        if (payload.target === userId && pcRef.current) {
-          await pcRef.current.addIceCandidate(new RTCIceCandidate(payload.candidate));
+        // Ensure we only process candidates aimed at us from a specific admin
+        if (payload.target === userId) {
+          const pc = pcRefs.current.get(payload.adminId);
+          if (pc) await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
         }
       });
 
@@ -97,10 +101,11 @@ export function useWebRTCSender(userId: string) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
-    if (pcRef.current) {
-      pcRef.current.close();
-      pcRef.current = null;
-    }
+    
+    // Close all connections
+    pcRefs.current.forEach(pc => pc.close());
+    pcRefs.current.clear();
+    
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
@@ -143,7 +148,7 @@ export function useWebRTCReceiver(adminId: string) {
         channel.send({
           type: 'broadcast',
           event: 'ice-candidate',
-          payload: { candidate: event.candidate, target: targetEmployeeId }
+          payload: { candidate: event.candidate, target: targetEmployeeId, adminId }
         });
       }
     };
@@ -163,12 +168,12 @@ export function useWebRTCReceiver(adminId: string) {
       channel.send({
         type: 'broadcast',
         event: 'webrtc-answer',
-        payload: { answer, target: targetEmployeeId }
+        payload: { answer, target: targetEmployeeId, adminId }
       });
     });
 
     channel.on('broadcast', { event: 'ice-candidate' }, async ({ payload }) => {
-      if (payload.target === adminId && pcRef.current) {
+      if (payload.target === adminId && payload.senderId === targetEmployeeId && pcRef.current) {
         await pcRef.current.addIceCandidate(new RTCIceCandidate(payload.candidate));
       }
     });

@@ -38,8 +38,25 @@ export function useTasks() {
     fetchTasks();
     const onTasksUpdated = () => fetchTasks();
     window.addEventListener('tasks_updated', onTasksUpdated);
-    return () => window.removeEventListener('tasks_updated', onTasksUpdated);
-  }, [fetchTasks]);
+
+    if (!user) return;
+    
+    const channel = supabase
+      .channel(`public:project_tasks:${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'project_tasks', filter: `assigned_to=eq.${user.id}` },
+        () => {
+          fetchTasks();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      window.removeEventListener('tasks_updated', onTasksUpdated);
+      supabase.removeChannel(channel);
+    };
+  }, [fetchTasks, user]);
 
   const addTask = async (task: { title: string; category?: string; time_spent?: number; status?: string }) => {
     if (!user) return;

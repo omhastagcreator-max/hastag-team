@@ -22,7 +22,7 @@ export default function AdminReports() {
 
       const [sessionsRes, tasksRes] = await Promise.all([
         supabase.from('sessions').select('start_time, end_time, break_time').gte('start_time', start.toISOString()),
-        supabase.from('tasks').select('created_at').gte('created_at', start.toISOString()),
+        supabase.from('project_tasks').select('created_at').gte('created_at', start.toISOString()),
       ]);
 
       const days = eachDayOfInterval({ start, end });

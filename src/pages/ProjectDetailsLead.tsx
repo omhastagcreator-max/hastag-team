@@ -71,8 +71,17 @@ export default function ProjectDetailsLead() {
     const { data: projData } = await supabase.from('projects').select('*').eq('id', projectId).single();
     if (projData) setProject(projData);
 
-    const { data: tasksData } = await supabase.from('project_tasks').select('*, profiles!project_tasks_assigned_to_fkey(name)').eq('project_id', projectId).order('created_at');
-    if (tasksData) setTasks(tasksData as any);
+    const { data: tasksData } = await supabase.from('project_tasks').select('*').eq('project_id', projectId).order('created_at');
+    
+    // We fetch profiles directly to assign to tasks because foreign_key joins fail directly on auth.users schemas.
+    const { data: allProfilesData } = await supabase.from('profiles').select('user_id, name');
+    
+    if (tasksData && allProfilesData) {
+       setTasks(tasksData.map((t: any) => ({
+          ...t,
+          profiles: { name: allProfilesData.find(p => p.user_id === t.assigned_to)?.name || 'Unassigned' }
+       })));
+    }
 
     const { data: goalsData } = await supabase.from('project_goals').select('*').eq('project_id', projectId).order('created_at');
     if (goalsData) setGoals(goalsData);

@@ -9,6 +9,7 @@ import { TrendingUp, TrendingDown, Minus, Activity, Target, CheckCircle2, Circle
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { ClientProjectProgress } from '@/components/RoleSpecPanels';
 
 interface Project {
   id: string;
@@ -26,6 +27,11 @@ interface Metric {
   date: string;
   metric_name: string;
   value: number;
+}
+
+interface Alert {
+  id: string;
+  message: string;
 }
 
 interface Goal {
@@ -52,6 +58,7 @@ export default function ClientDashboard() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [updates, setUpdates] = useState<any[]>([]);
+  const [unreadAlert, setUnreadAlert] = useState<Alert | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -59,6 +66,11 @@ export default function ClientDashboard() {
       const { data: pData } = await supabase.from('projects').select('*').eq('client_id', user.id).order('created_at', { ascending: false }).limit(1).single();
       if (!pData) return;
       setProject(pData);
+
+      const { data: alertsData } = await supabase.from('client_alerts').select('*').eq('client_id', user.id).eq('is_read', false).limit(1);
+      if (alertsData && alertsData.length > 0) {
+        setUnreadAlert(alertsData[0]);
+      }
 
       const [cRes, mRes, gRes, tRes, uRes] = await Promise.all([
         supabase.from('metric_config').select('*'),
@@ -143,15 +155,21 @@ export default function ClientDashboard() {
     return Math.round(score);
   }, [devProgress, goals, totalDev]);
 
+  const handleAcknowledgeAlert = async () => {
+    if (!unreadAlert) return;
+    await supabase.from('client_alerts').update({ is_read: true }).eq('id', unreadAlert.id);
+    setUnreadAlert(null);
+  };
+
   return (
     <AppLayout requiredRole="client">
       <PageTransition>
         <div className="max-w-4xl mx-auto space-y-8">
-          <div className="flex flex-col gap-1 relative z-10 p-6 bg-gradient-to-r from-background to-muted/20 rounded-2xl border border-border/50 shadow-sm backdrop-blur-sm shadow-orange-500/5">
-            <h1 className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-primary via-orange-500 to-red-500">Brand Deliverables</h1>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Your Projects</h1>
             {project ? (
-              <p className="text-muted-foreground text-lg uppercase tracking-wide font-semibold mt-2 opacity-80">{project.name} • Project Feed</p>
-            ) : <p className="text-muted-foreground">Loading your live feed...</p>}
+              <p className="text-sm text-muted-foreground mt-1">{project.name}</p>
+            ) : <p className="text-sm text-muted-foreground mt-1">Loading…</p>}
           </div>
 
           {!project && (
@@ -160,6 +178,8 @@ export default function ClientDashboard() {
                 <Skeleton className="h-32 rounded-xl shadow-sm border border-border/20 w-full" />
              </div>
           )}
+
+          <ClientProjectProgress />
 
           {project && (
              <div className="space-y-6">
@@ -212,6 +232,27 @@ export default function ClientDashboard() {
           )}
         </div>
       </PageTransition>
+
+      {unreadAlert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4">
+          <MotionCard delay={0} className="w-full max-w-md bg-background border-amber-500/50 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-amber-500" />
+            <CardHeader className="text-center pt-8">
+              <Megaphone className="h-12 w-12 text-amber-500 mx-auto mb-4 animate-bounce" />
+              <CardTitle className="text-2xl text-amber-500">Account Alert</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-6 pb-8">
+              <p className="text-lg font-medium">{unreadAlert.message}</p>
+              <button 
+                onClick={handleAcknowledgeAlert} 
+                className="w-full bg-amber-500 hover:bg-amber-600 focus:outline-none text-white font-bold rounded-lg py-3 shadow-md transition-colors"
+              >
+                I Understand
+              </button>
+            </CardContent>
+          </MotionCard>
+        </div>
+      )}
     </AppLayout>
   );
 }

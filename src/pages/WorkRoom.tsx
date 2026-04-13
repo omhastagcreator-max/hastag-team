@@ -4,10 +4,13 @@ import { Video } from 'lucide-react';
 import { JitsiMeeting } from '@jitsi/react-sdk';
 import { PageTransition } from '@/components/ui/PageTransition';
 import { MotionCard } from '@/components/ui/MotionCard';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function WorkRoom() {
+  const roomName = `agency-work-room-global-hub`;
+
   return (
-    <AppLayout requiredRole="employee">
+    <AppLayout>
       <PageTransition>
         <div className="max-w-6xl mx-auto space-y-4">
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60 flex items-center gap-2 drop-shadow-sm">
@@ -18,7 +21,7 @@ export default function WorkRoom() {
             <CardContent className="p-0" style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
               <JitsiMeeting
                 domain="meet.jit.si"
-                roomName="agency-work-room"
+                roomName={roomName}
                 configOverwrite={{
                   startWithAudioMuted: true,
                   disableModeratorIndicator: true,

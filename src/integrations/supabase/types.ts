@@ -229,6 +229,7 @@ export type Database = {
           title: string
           category: string | null
           time_spent: number | null
+          due_date: string | null
         }
         Insert: {
           assigned_by?: string | null
@@ -241,6 +242,7 @@ export type Database = {
           title: string
           category?: string | null
           time_spent?: number | null
+          due_date?: string | null
         }
         Update: {
           assigned_by?: string | null
@@ -253,6 +255,7 @@ export type Database = {
           title?: string
           category?: string | null
           time_spent?: number | null
+          due_date?: string | null
         }
         Relationships: [
           {
@@ -424,6 +427,63 @@ export type Database = {
           }
         ]
       }
+      lead_responses: {
+        Row: {
+          id: string
+          lead_id: string
+          user_id: string
+          note: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          lead_id: string
+          user_id: string
+          note: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          lead_id?: string
+          user_id?: string
+          note?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      project_updates: {
+        Row: {
+          id: string
+          project_id: string
+          author_id: string | null
+          content: string
+          requires_approval: boolean
+          is_approved: boolean | null
+          feedback: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          author_id?: string | null
+          content: string
+          requires_approval?: boolean
+          is_approved?: boolean | null
+          feedback?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          author_id?: string | null
+          content?: string
+          requires_approval?: boolean
+          is_approved?: boolean | null
+          feedback?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -435,6 +495,12 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      delete_user: {
+        Args: {
+          target_user_id: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

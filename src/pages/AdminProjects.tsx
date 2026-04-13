@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Briefcase } from 'lucide-react';
+import { Briefcase, Users2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface Profile {
@@ -25,6 +25,12 @@ interface Project {
   project_lead_id: string | null;
   client?: { name: string; email: string };
   lead?: { name: string; email: string };
+  teams?: string[];
+}
+
+interface Team {
+  id: string;
+  name: string;
 }
 
 export default function AdminProjects() {
@@ -34,13 +40,17 @@ export default function AdminProjects() {
   const [loading, setLoading] = useState(true);
 
   const [deals, setDeals] = useState<{id: string; lead: {name: string}}[]>([]);
+  const [teamsList, setTeamsList] = useState<Team[]>([]);
   
-  // Form state
+  // Project Form state
   const [name, setName] = useState('');
   const [type, setType] = useState('combined');
   const [clientId, setClientId] = useState('');
-  const [leadId, setLeadId] = useState('');
   const [dealId, setDealId] = useState('');
+  const [projectTeamId, setProjectTeamId] = useState('');
+
+  // Team Form State
+  const [teamName, setTeamName] = useState('');
 
   const fetchData = async () => {
     setLoading(true);
@@ -59,14 +69,18 @@ export default function AdminProjects() {
     const { data: dealsData } = await supabase.from('deals').select('id, leads(name)').eq('status', 'won');
     if (dealsData) setDeals(dealsData.map(d => ({id: d.id, lead: {name: d.leads?.name || 'Unknown'}})));
 
-    const { data: projData } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+    const { data: teamsData } = await supabase.from('teams').select('id, name');
+    if (teamsData) setTeamsList(teamsData);
+
+    const { data: projData } = await supabase.from('projects').select('*, project_teams(teams(name))').order('created_at', { ascending: false });
     if (projData) {
       const enriched = projData.map(p => ({
         ...p,
         client: profilesData?.find(profile => profile.user_id === p.client_id),
         lead: profilesData?.find(profile => profile.user_id === p.project_lead_id),
+        teams: p.project_teams?.map((pt: any) => pt.teams?.name).filter(Boolean) || [],
       }));
-      setProjects(enriched as Project[]);
+      setProjects(enriched as unknown as Project[]);
     }
     setLoading(false);
   };
@@ -79,20 +93,36 @@ export default function AdminProjects() {
     e.preventDefault();
     if (!name || !clientId || !leadId) return toast.error('Please fill all fields');
     
-    const { error } = await supabase.from('projects').insert({
+    const { data, error } = await supabase.from('projects').insert({
       name,
       project_type: type,
       client_id: clientId,
       project_lead_id: leadId,
       deal_id: dealId || null
-    });
-
+    }).select();
+    
     if (error) {
       toast.error('Failed to create project');
     } else {
+      if (projectTeamId && data) {
+         await supabase.from('project_teams').insert({ project_id: data[0].id, team_id: projectTeamId });
+      }
       toast.success('Project created');
       setName('');
       setDealId('');
+      setProjectTeamId('');
+      fetchData();
+    }
+  };
+
+  const handleCreateTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!teamName) return;
+    const { error } = await supabase.from('teams').insert({ name: teamName });
+    if (error) toast.error('Failed to create Team');
+    else {
+      toast.success('Team created');
+      setTeamName('');
       fetchData();
     }
   };
@@ -155,10 +185,39 @@ export default function AdminProjects() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div>
+                    <label className="text-sm font-medium">Link Team (Optional)</label>
+                    <Select value={projectTeamId} onValueChange={setProjectTeamId}>
+                      <SelectTrigger className="bg-background/50"><SelectValue placeholder="Select Team" /></SelectTrigger>
+                      <SelectContent>
+                        {teamsList.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <Button type="submit" className="w-full mt-2 group shadow-sm bg-primary/90 hover:bg-primary">Create Project 🚀</Button>
                 </form>
               </CardContent>
             </MotionCard>
+            
+            <div className="md:col-span-1 space-y-6">
+              <MotionCard delay={0.15} className="border border-border/50 shadow-md">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><Users2 className="h-5 w-5" /> Teams Mgt</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleCreateTeam} className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium">New Team Name</label>
+                      <Input value={teamName} onChange={e => setTeamName(e.target.value)} required placeholder="e.g. Content Pod A" className="bg-background/50" />
+                    </div>
+                    <Button type="submit" variant="secondary" className="w-full">Create Team</Button>
+                  </form>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {teamsList.map(t => <span key={t.id} className="text-xs bg-muted border border-border px-2 py-1 rounded">{t.name}</span>)}
+                  </div>
+                </CardContent>
+              </MotionCard>
+            </div>
             
             <MotionCard delay={0.2} className="md:col-span-2">
               <CardHeader>
@@ -185,6 +244,11 @@ export default function AdminProjects() {
                             <p><span className="text-muted-foreground">Lead: </span> {p.lead?.name || p.lead?.email || 'Unknown'}</p>
                           </div>
                         </div>
+                        {p.teams && p.teams.length > 0 && (
+                          <div className="mt-3 flex gap-2">
+                            {p.teams.map(t => <span key={t} className="text-[10px] uppercase tracking-wider bg-primary/10 text-primary px-2 py-1 rounded">{t}</span>)}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

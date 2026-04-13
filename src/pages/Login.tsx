@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { dashboardForRole } from '@/components/ProtectedRoute';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { PageTransition } from '@/components/ui/PageTransition';
 import { MotionCard } from '@/components/ui/MotionCard';
 import { Users } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 export default function Login() {
   const { user, role, loading, signIn, resetPassword } = useAuth();
@@ -27,7 +27,7 @@ export default function Login() {
   }
 
   if (user && role) {
-    return <Navigate to={role === 'admin' ? '/admin/dashboard' : role === 'client' ? '/client/dashboard' : role === 'sales' ? '/sales/dashboard' : '/employee/dashboard'} replace />;
+    return <Navigate to={dashboardForRole(role)} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,19 +48,13 @@ export default function Login() {
 
   return (
     <PageTransition>
-      <div className="fixed inset-0 z-[0] bg-gradient-to-br from-primary/10 via-transparent to-purple-500/10 animate-gradient-xy pointer-events-none" />
-      <div className="min-h-screen flex items-center justify-center bg-transparent px-4 relative z-10">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 relative z-10">
         <div className="w-full max-w-md">
-          <MotionCard delay={0.1} className="w-full shadow-2xl border-white/10 glass-panel">
+          <MotionCard delay={0.1} className="w-full shadow-lg border-border">
             <CardHeader className="text-center space-y-3 pb-2 pt-6">
-              <motion.div 
-                initial={{ scale: 0, rotate: -10 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
-                className="mx-auto flex items-center justify-center"
-              >
-                <img src="/logo.png" alt="Hastag-Team Creator Logo" className="h-14 w-auto object-contain drop-shadow-xl" />
-              </motion.div>
+              <div className="mx-auto flex items-center justify-center">
+                <img src="/logo.png" alt="Hastag-Team Creator Logo" className="h-14 w-auto object-contain drop-shadow-sm" />
+              </div>
               <CardTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500">
                 Hastag-Team App
               </CardTitle>
