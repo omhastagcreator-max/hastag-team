@@ -42,7 +42,7 @@ export function useTasks() {
     if (!user) return;
     
     const channel = supabase
-      .channel(`public:project_tasks:${user.id}`)
+      .channel(`project_tasks_changes_${user.id}_${Math.random()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'project_tasks', filter: `assigned_to=eq.${user.id}` },

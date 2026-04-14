@@ -56,7 +56,7 @@ export function AdminScreenMonitor() {
     fetchEmployeesAndStatus();
 
     // 3. Listen for real-time status updates explicitly on screen_sessions
-    const channel = supabase.channel('public:screen_sessions')
+    const channel = supabase.channel(`screen_sessions_changes_${Math.random()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'screen_sessions' }, payload => {
           setEmployees(prev => prev.map(emp => {
              if (payload.new && emp.user_id === (payload.new as any).user_id) {
