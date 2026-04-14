@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { dashboardForRole } from '@/components/ProtectedRoute';
 import { Button } from '@/components/ui/button';
