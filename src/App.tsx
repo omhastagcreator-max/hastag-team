@@ -61,7 +61,7 @@ const AnimatedRoutes = () => {
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute allow={["employee"]}>
+            <ProtectedRoute allow={["employee", "admin"]}>
               <EmployeeDashboard />
             </ProtectedRoute>
           }
