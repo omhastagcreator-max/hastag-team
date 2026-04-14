@@ -1,14 +1,16 @@
 import { test, expect } from '@playwright/test';
 
+const BASE_URL = process.env.BASE_URL || 'http://localhost:8080';
+
 // Configuration for users mapped to the mock accounts initialized in seed.js
 const users = [
-  { email: 'admin@hastag.com', role: 'admin', expectedUrl: '/admin/dashboard' },
-  { email: 'sakshi@hastag.com', role: 'employee', expectedUrl: '/employee/dashboard' },
-  { email: 'om@hastag.com', role: 'employee', expectedUrl: '/employee/dashboard' },
-  { email: 'sales@hastag.com', role: 'sales', expectedUrl: '/sales/dashboard' },
-  { email: 'vellor@hastag.com', role: 'client', expectedUrl: '/client/dashboard' },
-  { email: 'oudfy@hastag.com', role: 'client', expectedUrl: '/client/dashboard' },
-  { email: 'pamya@hastag.com', role: 'client', expectedUrl: '/client/dashboard' }
+  { email: 'admin@hastag.com', role: 'admin', expectedUrl: '/admin' },
+  { email: 'sakshi@hastag.com', role: 'employee', expectedUrl: '/dashboard' },
+  { email: 'om@hastag.com', role: 'employee', expectedUrl: '/dashboard' },
+  { email: 'sales@hastag.com', role: 'sales', expectedUrl: '/sales' },
+  { email: 'vellor@hastag.com', role: 'client', expectedUrl: '/client' },
+  { email: 'oudfy@hastag.com', role: 'client', expectedUrl: '/client' },
+  { email: 'pamya@hastag.com', role: 'client', expectedUrl: '/client' }
 ];
 
 test.describe('Heavy Concurrent User Load Testing', () => {
@@ -28,7 +30,7 @@ test.describe('Heavy Concurrent User Load Testing', () => {
     // 2. Login synchronously or parallel
     await Promise.all(
       userSessions.map(async ({ user, page }) => {
-        await page.goto('http://localhost:8080/login');
+        await page.goto(`${BASE_URL}/login`);
         await page.fill('input[type="email"]', user.email);
         await page.fill('input[type="password"]', 'password123');
         await page.click('button[type="submit"]');
@@ -45,23 +47,23 @@ test.describe('Heavy Concurrent User Load Testing', () => {
       userSessions.map(async ({ user, page }) => {
         if (user.role === 'employee') {
           // Employee interaction path
-          await page.goto('http://localhost:8080/tasks');
+          await page.goto(`${BASE_URL}/tasks`);
           await page.waitForTimeout(2000);
           
-          await page.goto('http://localhost:8080/workroom');
+          await page.goto(`${BASE_URL}/workroom`);
           await page.waitForSelector('text=Work Room', { timeout: 15000 });
         } else if (user.role === 'admin') {
           // Admin interaction path iterating multiple views aggressively
-          await page.goto('http://localhost:8080/admin/employees');
+          await page.goto(`${BASE_URL}/admin/employees`);
           await page.waitForTimeout(1000);
           
-          await page.goto('http://localhost:8080/admin/projects');
+          await page.goto(`${BASE_URL}/admin/projects`);
           await page.waitForTimeout(1000);
           
-          await page.goto('http://localhost:8080/admin/reports');
+          await page.goto(`${BASE_URL}/admin/reports`);
           await page.waitForTimeout(1000);
         } else if (user.role === 'sales') {
-          await page.goto('http://localhost:8080/sales/dashboard');
+          await page.goto(`${BASE_URL}/sales`);
           await page.waitForTimeout(5000);
         } else if (user.role === 'client') {
           await page.waitForTimeout(5000);

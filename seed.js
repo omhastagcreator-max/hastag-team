@@ -39,16 +39,15 @@ async function seed() {
         user_metadata: { name: userData.name }
       });
 
-      if (authError) {
-        if (authError.message.includes('already been registered')) {
-            console.log(`User ${userData.email} already exists. Fetching ID...`);
-            // we skip creating if it exists, but we need ID
-            // Unfortunately admin API listUsers is the only way
-            const { data: listData } = await supabase.auth.admin.listUsers();
-            userMappings[userData.email] = listData.users.find(u => u.email === userData.email).id;
-        } else {
+      if (authError && authError.message.includes('already been registered')) {
+            console.log(`User ${userData.email} already exists. Fetching ID from profiles...`);
+            const { data: profile } = await supabase.from('profiles').select('user_id').ilike('email', userData.email).single();
+            if(profile) userMappings[userData.email] = profile.user_id;
+            
+            // Force reset password to guarantee access
+            if(profile) await supabase.auth.admin.updateUserById(profile.user_id, { password: 'password123' });
+      } else if (authError) {
             console.error('Error creating user:', authError);
-        }
       } else {
         userMappings[userData.email] = authData.user.id;
         console.log(`Created user ${userData.email} with ID: ${authData.user.id}`);
@@ -56,6 +55,9 @@ async function seed() {
 
       // We explicitly override the role using service role key
       if (userMappings[userData.email]) {
+         // Force profiles upsert to guarantee it exists
+         await supabase.from('profiles').upsert({ user_id: userMappings[userData.email], role: userData.rawRole, email: userData.email, full_name: userData.name });
+         
          const { error: roleError } = await supabase.from('user_roles').upsert({
              user_id: userMappings[userData.email],
              role: userData.rawRole
