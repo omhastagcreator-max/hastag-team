@@ -49,8 +49,7 @@ const RouteFallback = () => (
 const AnimatedRoutes = () => {
   const location = useLocation();
   return (
-    <AnimatePresence mode="wait">
-      <Suspense fallback={<RouteFallback />}>
+    <Suspense fallback={<RouteFallback />}>
       <Routes location={location} key={location.pathname}>
         {/* Public */}
         <Route path="/" element={<Landing />} />
@@ -182,9 +181,8 @@ const AnimatedRoutes = () => {
         <Route path="/sales/dashboard" element={<Navigate to="/sales" replace />} />
 
         <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-    </AnimatePresence>
+      </Routes>
+    </Suspense>
   );
 };
 
