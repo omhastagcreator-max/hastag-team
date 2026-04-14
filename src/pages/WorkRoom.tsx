@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { CardContent } from '@/components/ui/card';
 import { Video } from 'lucide-react';
@@ -7,7 +8,49 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export default function WorkRoom() {
   const { profile } = useAuth();
-  const roomName = `agency-work-room-global-hub`;
+  const jitsiContainerRef = useRef<HTMLDivElement>(null);
+  const jitsiApiRef = useRef<any>(null);
+
+  useEffect(() => {
+    // Cleanup any existing instance (deals with React 18 strict mode double-mounts)
+    if (jitsiApiRef.current) return;
+
+    const loadJitsiScript = () => {
+      const script = document.createElement('script');
+      script.src = 'https://8x8.vc/vpaas-magic-cookie-ea738a18dfd84cb5a3ac1925aa61ea3b/external_api.js';
+      script.async = true;
+      script.onload = () => {
+        if (!(window as any).JitsiMeetExternalAPI || !jitsiContainerRef.current) return;
+        
+        jitsiApiRef.current = new (window as any).JitsiMeetExternalAPI("8x8.vc", {
+          roomName: "vpaas-magic-cookie-ea738a18dfd84cb5a3ac1925aa61ea3b/SampleAppCertainLungsFailConsiderably",
+          parentNode: jitsiContainerRef.current,
+          userInfo: {
+            displayName: profile?.name || 'Authorized Member'
+          },
+          configOverwrite: {
+            startWithAudioMuted: true,
+            disableModeratorIndicator: true
+          }
+        });
+      };
+      
+      document.body.appendChild(script);
+      return script;
+    };
+
+    const scriptElement = loadJitsiScript();
+
+    return () => {
+      if (jitsiApiRef.current) {
+        jitsiApiRef.current.dispose();
+        jitsiApiRef.current = null;
+      }
+      if (document.body.contains(scriptElement)) {
+        document.body.removeChild(scriptElement);
+      }
+    };
+  }, [profile?.name]);
 
   return (
     <AppLayout>
@@ -19,12 +62,10 @@ export default function WorkRoom() {
           </h1>
           <MotionCard delay={0.1} className="overflow-hidden border-border/50">
             <CardContent className="p-0" style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
-              <iframe
-                src={`https://meet.jit.si/${roomName}#userInfo.displayName="${encodeURIComponent(profile?.name || 'Authorized Member')}"&config.startWithAudioMuted=true&config.disableModeratorIndicator=true&config.startScreenSharing=true&interfaceConfig.DISABLE_JOIN_LEAVE_NOTIFICATIONS=true`}
-                allow="camera; microphone; fullscreen; display-capture"
-                style={{ width: '100%', height: '100%', border: '0px' }}
-                title="Secure Work Room"
-              />
+              <div ref={jitsiContainerRef} className="w-full h-full bg-black/90 flex items-center justify-center">
+                {/* Jitsi SDK will inject the iframe here natively */}
+                {!jitsiApiRef.current && <div className="text-muted-foreground animate-pulse">Initializing JaaS Secure Room...</div>}
+              </div>
             </CardContent>
           </MotionCard>
         </div>
