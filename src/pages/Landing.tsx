@@ -1,7 +1,6 @@
 import { motion, Variants } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LandingScene } from '@/components/LandingScene';
 import { ArrowRight, BarChart3, Briefcase, Users, LayoutDashboard, ShieldCheck } from 'lucide-react';
 import { PageTransition } from '@/components/ui/PageTransition';
 
@@ -40,10 +39,8 @@ export default function Landing() {
           </div>
         </nav>
 
-        {/* 3D Background */}
-        <div className="absolute inset-0 top-16 z-0">
-          <LandingScene />
-        </div>
+        {/* Sleek Gradient Background instead of Heavy 3D */}
+        <div className="absolute inset-0 top-16 z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
 
         {/* Hero Section */}
         <main className="flex-1 flex flex-col z-10 relative mt-16">
