@@ -1,7 +1,6 @@
 import { AppLayout } from '@/components/AppLayout';
 import { CardContent } from '@/components/ui/card';
 import { Video } from 'lucide-react';
-import { JitsiMeeting } from '@jitsi/react-sdk';
 import { PageTransition } from '@/components/ui/PageTransition';
 import { MotionCard } from '@/components/ui/MotionCard';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,25 +19,11 @@ export default function WorkRoom() {
           </h1>
           <MotionCard delay={0.1} className="overflow-hidden border-border/50">
             <CardContent className="p-0" style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
-              <JitsiMeeting
-                domain="meet.jit.si"
-                roomName={roomName}
-                userInfo={{
-                  displayName: profile?.name || 'Authorized Member'
-                }}
-                configOverwrite={{
-                  startWithAudioMuted: true,
-                  disableModeratorIndicator: true,
-                  startScreenSharing: true,
-                  enableEmailInStats: false
-                }}
-                interfaceConfigOverwrite={{
-                  DISABLE_JOIN_LEAVE_NOTIFICATIONS: true
-                }}
-                getIFrameRef={(iframeRef) => {
-                  iframeRef.style.height = '100%';
-                  iframeRef.style.width = '100%';
-                }}
+              <iframe
+                src={`https://meet.jit.si/${roomName}#userInfo.displayName="${encodeURIComponent(profile?.name || 'Authorized Member')}"&config.startWithAudioMuted=true&config.disableModeratorIndicator=true&config.startScreenSharing=true&interfaceConfig.DISABLE_JOIN_LEAVE_NOTIFICATIONS=true`}
+                allow="camera; microphone; fullscreen; display-capture"
+                style={{ width: '100%', height: '100%', border: '0px' }}
+                title="Secure Work Room"
               />
             </CardContent>
           </MotionCard>
