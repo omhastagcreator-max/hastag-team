@@ -11,6 +11,9 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
+  define: {
+    global: 'window',
+  },
   plugins: [react()].filter(Boolean),
   cacheDir: "/tmp/vite-cache",
   resolve: {

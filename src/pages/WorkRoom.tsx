@@ -7,6 +7,7 @@ import { MotionCard } from '@/components/ui/MotionCard';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function WorkRoom() {
+  const { profile } = useAuth();
   const roomName = `agency-work-room-global-hub`;
 
   return (
@@ -22,6 +23,9 @@ export default function WorkRoom() {
               <JitsiMeeting
                 domain="meet.jit.si"
                 roomName={roomName}
+                userInfo={{
+                  displayName: profile?.name || 'Authorized Member'
+                }}
                 configOverwrite={{
                   startWithAudioMuted: true,
                   disableModeratorIndicator: true,
