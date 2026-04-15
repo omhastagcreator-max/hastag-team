@@ -13,6 +13,7 @@ export interface Task {
   assigned_to: string | null;
   assigned_by: string | null;
   project_id: string | null;
+  due_date: string | null;
 }
 
 export function useTasks() {
@@ -58,7 +59,7 @@ export function useTasks() {
     };
   }, [fetchTasks, user]);
 
-  const addTask = async (task: { title: string; category?: string; time_spent?: number; status?: string }) => {
+  const addTask = async (task: { title: string; category?: string; time_spent?: number; status?: string; due_date?: string }) => {
     if (!user) return;
     const { data } = await supabase
       .from('project_tasks')
@@ -69,17 +70,18 @@ export function useTasks() {
         time_spent: task.time_spent || null,
         status: task.status || 'pending',
         task_type: 'personal', // By default, adding from task list makes it personal
+        due_date: task.due_date || null
       })
       .select()
       .single();
     if (data) {
-      setTasks((prev) => [data, ...prev]);
+      setTasks((prev) => [data as Task, ...prev]);
       window.dispatchEvent(new Event('tasks_updated'));
     }
     return data;
   };
 
-  const updateTask = async (id: string, updates: Partial<Pick<Task, 'title' | 'category' | 'status' | 'time_spent'>>) => {
+  const updateTask = async (id: string, updates: Partial<Pick<Task, 'title' | 'category' | 'status' | 'time_spent' | 'due_date'>>) => {
     const { data } = await supabase
       .from('project_tasks')
       .update(updates)
@@ -87,7 +89,7 @@ export function useTasks() {
       .select()
       .single();
     if (data) {
-      setTasks((prev) => prev.map((t) => (t.id === id ? data : t)));
+      setTasks((prev) => prev.map((t) => (t.id === id ? (data as Task) : t)));
       window.dispatchEvent(new Event('tasks_updated'));
     }
   };

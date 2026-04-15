@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { SessionTracker } from '@/components/SessionTracker';
 import { TaskList } from '@/components/TaskList';
+import { TaskCalendar } from '@/components/TaskCalendar';
 import { TodaySummary } from '@/components/TodaySummary';
 import { PageTransition } from '@/components/ui/PageTransition';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Briefcase } from 'lucide-react';
+import { useTasks } from '@/hooks/useTasks';
 
 interface Project {
   id: string;
@@ -22,6 +24,7 @@ import { MarketingWidget } from '@/components/domain/MarketingWidget';
 import { ContentWidget } from '@/components/domain/ContentWidget';
 export default function EmployeeDashboard() {
   const { user, profile } = useAuth();
+  const { tasks, updateTask } = useTasks();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
 
@@ -56,6 +59,10 @@ export default function EmployeeDashboard() {
           <div className="grid lg:grid-cols-2 gap-4">
             <SessionTracker />
             <TaskList />
+          </div>
+
+          <div className="mt-6">
+             <TaskCalendar tasks={tasks} onToggleTask={(t, next) => updateTask(t.id, { status: next })} />
           </div>
 
           <TodaySummary />

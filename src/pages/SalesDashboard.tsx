@@ -35,9 +35,13 @@ interface LeadResponse {
   created_at: string;
 }
 
+import { useTasks } from '@/hooks/useTasks';
+import { TaskCalendar } from '@/components/TaskCalendar';
+
 export default function SalesDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { tasks, updateTask } = useTasks();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   
@@ -170,6 +174,10 @@ export default function SalesDashboard() {
              <Button onClick={() => navigate('/workroom')} variant="outline" size="sm" className="gap-2">
                <Video className="h-4 w-4" /> WorkRoom
              </Button>
+          </div>
+
+          <div className="mt-4 mb-4">
+             <TaskCalendar tasks={tasks} onToggleTask={(t, next) => updateTask(t.id, { status: next })} />
           </div>
 
           {/* Top metrics */}

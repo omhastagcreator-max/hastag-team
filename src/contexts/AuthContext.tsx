@@ -25,26 +25,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<{ name: string; email: string; team?: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserData = async (userId: string) => {
-    const [roleRes, profileRes] = await Promise.all([
-      supabase.from('user_roles').select('role').eq('user_id', userId).single(),
-      supabase.from('profiles').select('name, email, team, organization_id').eq('user_id', userId).single(),
-    ]);
-    if (roleRes.data) setRole(roleRes.data.role as AppRole);
-    if (profileRes.data) setProfile(profileRes.data);
-    return profileRes.data;
-  };
-
   useEffect(() => {
+    let mounted = true;
+
+    const fetchUserData = async (userId: string) => {
+      try {
+        const [roleRes, profileRes] = await Promise.all([
+          supabase.from('user_roles').select('role').eq('user_id', userId).single(),
+          supabase.from('profiles').select('name, email, team, organization_id').eq('user_id', userId).single(),
+        ]);
+        if (!mounted) return;
+        if (roleRes.data) setRole(roleRes.data.role as AppRole);
+        if (profileRes.data) setProfile(profileRes.data);
+        return profileRes.data;
+      } catch (e) {
+        console.error("fetchUserData error:", e);
+        return null;
+      }
+    };
+
+    const initSession = async () => {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (!mounted) return;
+      
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      
+      if (currentSession?.user) {
+        await fetchUserData(currentSession.user.id);
+      } else {
+        setRole(null);
+        setProfile(null);
+      }
+      if (mounted) setLoading(false);
+    };
+
+    initSession();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          const profileData = await fetchUserData(session.user.id);
-          if (_event === 'SIGNED_IN' && profileData?.organization_id) {
+      async (_event, currentSession) => {
+        if (_event === 'INITIAL_SESSION') return; // Handled by initSession
+        if (!mounted) return;
+        
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        if (currentSession?.user) {
+          const profileData = await fetchUserData(currentSession.user.id);
+          if (_event === 'SIGNED_IN' && profileData?.organization_id && mounted) {
             await supabase.from('activity_logs').insert({
-              user_id: session.user.id,
+              user_id: currentSession.user.id,
               action: 'login',
               organization_id: profileData.organization_id,
             });
@@ -53,22 +83,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setRole(null);
           setProfile(null);
         }
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     );
 
-    const initSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchUserData(session.user.id);
-      }
-      setLoading(false);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
     };
-    initSession();
-
-    return () => subscription.unsubscribe();
   }, []);
 
   const signIn = async (email: string, password: string) => {

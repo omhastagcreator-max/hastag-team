@@ -11,7 +11,7 @@ import { TaskCard } from '@/components/TaskCard';
 const categories = ['SEO', 'Ads', 'Design', 'Dev', 'Other'];
 
 function TaskForm({ onSubmit, initial, onCancel }: {
-  onSubmit: (t: { title: string; category?: string; time_spent?: number; status?: string }) => void;
+  onSubmit: (t: { title: string; category?: string; time_spent?: number; status?: string; due_date?: string }) => void;
   initial?: Task;
   onCancel?: () => void;
 }) {
@@ -19,23 +19,33 @@ function TaskForm({ onSubmit, initial, onCancel }: {
   const [category, setCategory] = useState(initial?.category || '');
   const [timeSpent, setTimeSpent] = useState(initial?.time_spent?.toString() || '');
   const [status, setStatus] = useState(initial?.status || 'pending');
+  const [dueDate, setDueDate] = useState(initial?.due_date?.split('T')[0] || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+    
     onSubmit({
       title: title.trim(),
       category: category || undefined,
       time_spent: timeSpent ? parseInt(timeSpent) : undefined,
       status,
+      due_date: dueDate ? new Date(dueDate).toISOString() : undefined,
     });
-    if (!initial) { setTitle(''); setCategory(''); setTimeSpent(''); setStatus('pending'); }
+    
+    if (!initial) { 
+      setTitle(''); 
+      setCategory(''); 
+      setTimeSpent(''); 
+      setStatus('pending');
+      setDueDate('');
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <Input placeholder="Task title *" value={title} onChange={(e) => setTitle(e.target.value)} required />
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         <Select value={category} onValueChange={setCategory}>
           <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
           <SelectContent>
@@ -51,6 +61,7 @@ function TaskForm({ onSubmit, initial, onCancel }: {
             <SelectItem value="done">Done</SelectItem>
           </SelectContent>
         </Select>
+        <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
       </div>
       <div className="flex gap-2">
         <Button type="submit" size="sm" className="gap-1">

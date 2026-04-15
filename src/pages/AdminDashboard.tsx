@@ -9,6 +9,9 @@ import { PageTransition } from '@/components/ui/PageTransition';
 import { MotionCard } from '@/components/ui/MotionCard';
 import { AdminScreenMonitor } from '@/components/AdminScreenMonitor';
 import { CompanyMetricsCards, OverdueTasksAdmin, AtRiskProjects, ClientOverviewGrid } from '@/components/RoleSpecPanels';
+import { EmployeePerformancePanel } from '@/components/Admin/EmployeePerformancePanel';
+import { TaskCalendar } from '@/components/TaskCalendar';
+import { Task } from '@/hooks/useTasks';
 
 interface EmployeeSummary {
   user_id: string;
@@ -23,6 +26,7 @@ export default function AdminDashboard() {
   const [employees, setEmployees] = useState<EmployeeSummary[]>([]);
   const [timeline, setTimeline] = useState<{ type: string; text: string; time: string; user: string | undefined }[]>([]);
   const [taskStats, setTaskStats] = useState<{name: string; value: number; color: string}[]>([]);
+  const [adminTasks, setAdminTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -36,6 +40,8 @@ export default function AdminDashboard() {
       const { data: roles } = await supabase.from('user_roles').select('user_id, role');
       const { data: sessions } = await supabase.from('sessions').select('user_id, start_time, end_time, break_time').gte('start_time', todayIso);
       const { data: tasks } = await supabase.from('project_tasks').select('assigned_to, created_at').gte('created_at', todayIso);
+      const { data: allTasksData } = await supabase.from('project_tasks').select('*').order('created_at', { ascending: false }).limit(200);
+      if (allTasksData) setAdminTasks(allTasksData as Task[]);
 
       const employeeUserIds = (roles || []).filter((r) => r.role === 'employee').map((r) => r.user_id);
 
@@ -113,44 +119,12 @@ export default function AdminDashboard() {
             <AtRiskProjects />
           </div>
 
-          {/* BOTTOM — employee performance table (replaces the heavy chart) */}
-          <MotionCard className="border border-border">
-            <CardHeader className="border-b border-border pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Users className="h-4 w-4 text-primary" />
-                Employee Performance Today
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              {loading ? (
-                <p className="text-muted-foreground text-center py-6 text-sm">Loading…</p>
-              ) : employees.length === 0 ? (
-                <p className="text-muted-foreground text-center py-6 text-sm">No employees yet.</p>
-              ) : (
-                <div className="divide-y divide-border max-h-80 overflow-auto">
-                  {employees.map((emp) => (
-                    <button
-                      key={emp.user_id}
-                      onClick={() => navigate(`/admin/employees/${emp.user_id}`)}
-                      className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/40 transition-colors text-left"
-                    >
-                      <div className="min-w-0">
-                        <p className="font-medium text-sm truncate">{emp.name}</p>
-                        <p className="text-[11px] text-muted-foreground truncate">{emp.email}</p>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs shrink-0">
-                        <span className="font-mono tabular-nums">{emp.todayHours.toFixed(1)}h</span>
-                        <Badge variant="secondary">{emp.todayTasks} tasks</Badge>
-                        {emp.todayHours > 0 && (
-                          <Badge className="bg-green-500/15 text-green-600 border-0">Active</Badge>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </MotionCard>
+          <div className="mt-4 mb-4">
+             <TaskCalendar tasks={adminTasks} />
+          </div>
+
+          {/* Employee Performance Panel (New Component) */}
+          <EmployeePerformancePanel />
 
           {/* Bottom-most: client overview + screen monitor (lower priority) */}
           <ClientOverviewGrid />

@@ -48,7 +48,15 @@ interface Task {
   status: string;
   task_type: string;
   created_at: string;
+  due_date: string | null;
+  category: string | null;
+  time_spent: number | null;
+  assigned_to: string | null;
+  assigned_by: string | null;
+  project_id: string | null;
 }
+
+import { TaskCalendar } from '@/components/TaskCalendar';
 
 export default function ClientDashboard() {
   const { user } = useAuth();
@@ -183,6 +191,9 @@ export default function ClientDashboard() {
 
           {project && (
              <div className="space-y-6">
+                <div className="mt-4 mb-4">
+                  <TaskCalendar tasks={tasks} />
+                </div>
                  <div className="text-sm text-muted-foreground mb-2">
                     Review and mark the latest deliverables and updates pushed by your Agency Lead below.
                  </div>
